@@ -8,7 +8,7 @@
 
 // (almost) directly from OS dev wiki
 // https://wiki.osdev.org/PCI
-uint16_t pci_read16(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
+uint16_t __pci_read16(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     uint32_t address;
     uint32_t lbus  = (uint32_t)bus;
     uint32_t lslot = (uint32_t)slot;
@@ -27,7 +27,7 @@ uint16_t pci_read16(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     return (tmp);
 }
 
-uint32_t pci_read32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
+uint32_t __pci_read32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     uint32_t address;
     uint32_t lbus  = (uint32_t)bus;
     uint32_t lslot = (uint32_t)slot;
@@ -40,7 +40,7 @@ uint32_t pci_read32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     return __inl(PCI_CONFIG_DATA_PORT);
 }
 
-uint8_t pci_read8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
+uint8_t __pci_read8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     uint32_t address;
     uint32_t lbus  = (uint32_t)bus;
     uint32_t lslot = (uint32_t)slot;
@@ -57,12 +57,12 @@ uint8_t pci_read8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     return (tmp);
 }
 
-int pci_find_device(pci_dev_t* dev, uint16_t vendorID, uint16_t deviceID) {
+int __pci_find_device(pci_dev_t* dev, uint16_t vendorID, uint16_t deviceID) {
     for(int bus = 0; bus < 256; bus++) {
         for(int slot = 0; slot < 32; slot++) {
             // for now assume all devices have function = 0 (don't care about bridges etc.)
-            if(vendorID == pci_read16(bus, slot, 0, PCI_VENDOR_ID_OFFSET)) {
-                if(deviceID == pci_read16(bus, slot, 0, PCI_DEVICE_ID_OFFSET)) {
+            if(vendorID == __pci_read16(bus, slot, 0, PCI_VENDOR_ID_OFFSET)) {
+                if(deviceID == __pci_read16(bus, slot, 0, PCI_DEVICE_ID_OFFSET)) {
                     dev->bus = bus;
                     dev->slot = slot;
                     dev->function = 0;
