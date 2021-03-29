@@ -7,7 +7,7 @@
 #ifndef PCI_H
 #define PCI_H
 
-#include <stdint.h>
+#include <common.h>
 
 
 #define PCI_CONFIG_ADDR_PORT 0xCF8

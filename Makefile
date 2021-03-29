@@ -11,9 +11,9 @@
 #
 
 OS_C_SRC = clock.c kernel.c klibc.c kmem.c process.c queues.c \
-	scheduler.c sio.c stacks.c syscalls.c
+	scheduler.c sio.c stacks.c syscalls.c pci.c
 OS_C_OBJ = clock.o kernel.o klibc.o kmem.o process.o queues.o \
-	scheduler.o sio.o stacks.o syscalls.o
+	scheduler.o sio.o stacks.o syscalls.o pci.o
 
 OS_S_SRC = klibs.S
 OS_S_OBJ = klibs.o
@@ -114,13 +114,13 @@ ASFLAGS = --32
 LD = ld
 LDFLAGS = -melf_i386 -no-pie
 
-#		
+#
 # Transformation rules - these ensure that all compilation
 # flags that are necessary are specified
 #
 # Note use of 'cpp' to convert .S files to temporary .s files: this allows
 # use of #include/#define/#ifdef statements. However, the line numbers of
-# error messages reflect the .s file rather than the original .S file. 
+# error messages reflect the .s file rather than the original .S file.
 # (If the .s file already exists before a .S file is assembled, then
 # the temporary .s file is not deleted.  This is useful for figuring
 # out the line numbers of error messages, but take care not to accidentally
@@ -161,10 +161,10 @@ LDFLAGS = -melf_i386 -no-pie
 # Default target:  usb.image
 #
 
-usb.image: bootstrap.b prog.b prog.nl BuildImage prog.dis 
+usb.image: bootstrap.b prog.b prog.nl BuildImage prog.dis
 	./BuildImage -d usb -o usb.image -b bootstrap.b prog.b 0x10000
 
-floppy.image: bootstrap.b prog.b prog.nl BuildImage prog.dis 
+floppy.image: bootstrap.b prog.b prog.nl BuildImage prog.dis
 	./BuildImage -d floppy -o floppy.image -b bootstrap.b prog.b 0x10000
 
 prog.out: $(OBJECTS)
