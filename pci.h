@@ -1,6 +1,6 @@
 /*
 *   file:  pci.h
-*  
+*
 *   PCI bus utility library
 */
 
@@ -13,7 +13,7 @@
 #define PCI_CONFIG_ADDR_PORT 0xCF8
 #define PCI_CONFIG_DATA_PORT 0xCFC
 #define PCI_VENDOR_ID_OFFSET 0
-#define PCI_DEVICE_ID_OFFSET
+#define PCI_DEVICE_ID_OFFSET 2
 
 typedef struct {
     uint8_t bus;
