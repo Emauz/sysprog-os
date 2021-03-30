@@ -91,6 +91,7 @@
 // called exit() but continued to run), it will usually return a status
 // of 42.
 //
+/*
 #define SPAWN_A
 #define SPAWN_B
 #define SPAWN_C
@@ -113,6 +114,7 @@
 #define SPAWN_T
 #define SPAWN_U
 #define SPAWN_V
+*/
 
 //
 // Users W-Z are spawned from other processes; they
