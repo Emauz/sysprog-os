@@ -228,7 +228,7 @@ prog.dis: prog.o
 
 # qemu emulation
 QEMU = /home/course/csci352/bin/qemu-system-i386
-QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw
+QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw -device i82557b
 
 qemu: usb.image 
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
