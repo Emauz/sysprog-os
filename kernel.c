@@ -21,6 +21,7 @@
 #include "sio.h"
 #include "scheduler.h"
 #include "support.h"
+#include "test.h"
 
 // need init() and idle() addresses
 #include "users.h"
@@ -177,6 +178,9 @@ void _init( void ) {
     **
     ** Finally, report that we're all done.
     */
+
+    // DEBUG test functions
+    __pci_test();
 
     __cio_puts( "System initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );

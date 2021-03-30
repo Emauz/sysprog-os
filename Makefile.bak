@@ -11,7 +11,7 @@
 #
 
 OS_C_SRC = clock.c kernel.c klibc.c kmem.c process.c queues.c \
-	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c
+	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c
 OS_C_OBJ = clock.o kernel.o klibc.o kmem.o process.o queues.o \
 	scheduler.o sio.o stacks.o syscalls.o pci.o
 
@@ -225,18 +225,19 @@ prog.nll: prog.o
 prog.dis: prog.o
 	objdump -d prog.o > prog.dis
 
-#
-# 'makedepend' is a program which creates dependency lists by looking
-# at the #include lines in the source files.
-#
 
 # qemu emulation
 QEMU = /home/course/csci352/bin/qemu-system-i386
 QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw
 
-qemu: usb.image
-  $(QEMU) -serial mon:stdio $(QEMUOPTS)
+qemu: usb.image 
+	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 
+
+#
+# 'makedepend' is a program which creates dependency lists by looking
+# at the #include lines in the source files.
+#
 
 depend:
 	makedepend $(INCLUDES) $(SOURCES)
@@ -274,6 +275,10 @@ stacks.o: process.h stacks.h queues.h klib.h
 syscalls.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
 syscalls.o: x86arch.h process.h stacks.h queues.h klib.h x86pic.h ./uart.h
 syscalls.o: bootstrap.h syscalls.h scheduler.h clock.h sio.h
+pci.o: pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
+pci.o: x86arch.h process.h stacks.h queues.h klib.h
+eth.o: eth.h pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
+eth.o: x86arch.h process.h stacks.h queues.h klib.h
 users.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 users.o: process.h stacks.h queues.h klib.h users.h userland/main1.c
 users.o: userland/main2.c userland/main3.c userland/userH.c userland/userZ.c

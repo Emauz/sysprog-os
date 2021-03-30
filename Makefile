@@ -11,9 +11,9 @@
 #
 
 OS_C_SRC = clock.c kernel.c klibc.c kmem.c process.c queues.c \
-	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c
+	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c
 OS_C_OBJ = clock.o kernel.o klibc.o kmem.o process.o queues.o \
-	scheduler.o sio.o stacks.o syscalls.o pci.o
+	scheduler.o sio.o stacks.o syscalls.o pci.o test.o
 
 OS_S_SRC = klibs.S
 OS_S_OBJ = klibs.o
@@ -256,7 +256,7 @@ clock.o: support.h kernel.h process.h stacks.h queues.h klib.h clock.h
 clock.o: scheduler.h
 kernel.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 kernel.o: process.h stacks.h queues.h klib.h clock.h bootstrap.h syscalls.h
-kernel.o: sio.h scheduler.h users.h
+kernel.o: sio.h scheduler.h test.h users.h
 klibc.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 klibc.o: process.h stacks.h queues.h klib.h
 kmem.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
@@ -279,13 +279,11 @@ pci.o: pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
 pci.o: x86arch.h process.h stacks.h queues.h klib.h
 eth.o: eth.h pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
 eth.o: x86arch.h process.h stacks.h queues.h klib.h
+test.o: pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
+test.o: x86arch.h process.h stacks.h queues.h klib.h
 users.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
-users.o: process.h stacks.h queues.h klib.h users.h userland/main1.c
-users.o: userland/main2.c userland/main3.c userland/userH.c userland/userZ.c
-users.o: userland/userI.c userland/userW.c userland/userJ.c userland/userY.c
-users.o: userland/main4.c userland/userX.c userland/main5.c userland/userP.c
-users.o: userland/userQ.c userland/userR.c userland/userS.c userland/main6.c
-users.o: userland/userV.c userland/init.c userland/idle.c
+users.o: process.h stacks.h queues.h klib.h users.h userland/init.c
+users.o: userland/idle.c
 ulibc.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 ulibc.o: process.h stacks.h queues.h klib.h
 ulibs.o: syscalls.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
