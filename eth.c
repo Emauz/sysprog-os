@@ -30,6 +30,7 @@ void __eth_init() {
 
     // load 0x00 into CU Base and RU Base to use linear addressing
     // use load CU base and load RU base commands of the CSR
+    // ALTERNATIVELY load the start of the tx linked list of commands in CU base and the start of RFD (receive frame data) to RU base (or RU start??) and set CSR general pointer to 0 for all operations
 
     // enable interrupts
     // write mask to interrupt bits of CSR (found at the CSR BAR)
