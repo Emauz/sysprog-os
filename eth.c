@@ -19,6 +19,8 @@ void __eth_init() {
     // find the device on the PCI bus
     assert(0 == __pci_find_device(&eth_dev, ETH_VENDOR_ID, ETH_DEVICE_ID));
 
+    // MAYBE issue a reset command, the manual says to do this since it could be a warm reboot but that will never happen so I think we can not
+
     // get the BARs
     eth.CSR_IO_BAR = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR);
     eth.CSR_MM_BAR = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
