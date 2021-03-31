@@ -2,7 +2,7 @@
 #include "cio.h"
 #include "common.h"
 
-void __pci_test() {
+void __pci_test(void) {
   uint16_t vendorID;
   uint16_t deviceID;
   uint8_t int_line;
