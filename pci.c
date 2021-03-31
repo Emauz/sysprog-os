@@ -66,6 +66,7 @@ int __pci_find_device(pci_dev_t* dev, uint16_t vendorID, uint16_t deviceID) {
                     dev->bus = bus;
                     dev->slot = slot;
                     dev->function = 0;
+                    dev->int_line = __pci_read8(bus, slot, 0, PCI_INT_LINE_OFFSET);
                     return 0;
                 }
             }

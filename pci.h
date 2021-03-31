@@ -12,13 +12,16 @@
 
 #define PCI_CONFIG_ADDR_PORT 0xCF8
 #define PCI_CONFIG_DATA_PORT 0xCFC
-#define PCI_VENDOR_ID_OFFSET 0
-#define PCI_DEVICE_ID_OFFSET 2
+
+#define PCI_VENDOR_ID_OFFSET 0x0
+#define PCI_DEVICE_ID_OFFSET 0x2
+#define PCI_INT_LINE_OFFSET  0x3C // interrupt vector number that comes in on the PIC
 
 typedef struct {
     uint8_t bus;
     uint8_t slot;
     uint8_t function;
+    uint8_t int_line; // interrupt line
 } pci_dev_t;
 
 
