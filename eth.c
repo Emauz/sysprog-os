@@ -107,7 +107,7 @@ void __eth_nop(void) {
     // setup the CBL
     __memset(CBL, 8, 0x0);
     uint8_t nop_cmd = 0b10100000; // set I and EL bit
-    CBL[0] = nop_cmd;
+    CBL[3] = nop_cmd;
 
     // load CBL addr. into SCB GENERAL ptr.
     // *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = (uint32_t)CBL;
