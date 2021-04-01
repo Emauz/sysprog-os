@@ -20,9 +20,9 @@
 #define ETH_PCI_IO_BAR 0x14
 
 // CSR offsets
-#define ETH_SCB_STATUS_WORD   0x00
-#define ETH_SCB_CMD_WORD      0x02
-#define ETH_SCB_BASE_POINTER  0x04
+#define ETH_SCB_STATUS_WORD      0x00
+#define ETH_SCB_CMD_WORD         0x02
+#define ETH_SCB_GENERAL_POINTER  0x04
 
 
 typedef struct {
@@ -32,5 +32,6 @@ typedef struct {
 
 // init the ethernet module
 void __eth_init(void);
+void __eth_nop(void);
 
 #endif

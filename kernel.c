@@ -183,6 +183,7 @@ void _init( void ) {
     // DEBUG test functions
     //__pci_test();
     __eth_init();
+    __eth_nop();
 
     __cio_puts( "System initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );
@@ -252,7 +253,7 @@ void _shell( int ch ) {
                 }
             }
             break;
-     
+
         default:
             __cio_printf( "shell: unknown request '0x%02x'\n", ch );
             // FALL THROUGH

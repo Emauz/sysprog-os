@@ -74,6 +74,15 @@ void __eth_nop(void) {
     uint8_t nop_cmd = 0b10100000; // set I and EL bit
     CBL[0] = nop_cmd;
 
+    // load CBL addr. into SCB GENERAL ptr.
+    *((void**)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = CBL;
+
     // CU Start command
-    *((uint16_t*)eth.CSR_MM_BA) &= (0x1 << 4);
+    uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
+
+    // cmd_word = xxxx...xxxxx00010xxx
+    cmd_word |= 0b10000;
+    cmd_word &= 0b00010111;
+
+    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
 }
