@@ -12,10 +12,11 @@
 #define ETH_SUCCESS 0
 #define ETH_ERR -1 // general error, can make more specific
 
+// PCI vendor ID and device ID
 #define ETH_VENDOR_ID 0x8086
 #define ETH_DEVICE_ID 0x1229 // TODO this depends on which device specifically, this is for the 82557
 
-// PCI base address registers (MMIO and IO addr. spaces)
+// PCI config. space offsets
 #define ETH_PCI_MM_BAR 0x10
 #define ETH_PCI_IO_BAR 0x14
 
@@ -23,6 +24,25 @@
 #define ETH_SCB_STATUS_WORD      0x00
 #define ETH_SCB_CMD_WORD         0x02
 #define ETH_SCB_GENERAL_POINTER  0x04
+#define ETH_PORT                 0x08
+
+// PORT commands
+#define ETH_SOFT_RESET  0x00
+
+// CUC commands (part of SCB command word)
+#define ETH_CU_NOP       0b0000
+#define ETH_CU_START     0b0001
+#define ETH_CU_RESUME    0b0010
+#define ETH_LOAD_CU_BASE 0b0110
+
+// RUC commands (part of SCB command word)
+#define ETH_RU_NOP       0b000
+#define ETH_RU_START     0b001
+#define ETH_RU_RESUME    0b010
+#define ETH_LOAD_RU_BASE 0b110
+
+// CU action commands
+// TODO
 
 
 typedef struct {

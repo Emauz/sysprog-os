@@ -45,8 +45,6 @@ void __eth_init(void) {
     // find the device on the PCI bus
     assert(0 == __pci_find_device(&eth_pci, ETH_VENDOR_ID, ETH_DEVICE_ID));
 
-    // MAYBE issue a reset command, the manual says to do this since it could be a warm reboot but that will never happen so I think we can not
-
     // get the BARs
     eth.CSR_IO_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR);
     eth.CSR_MM_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
@@ -56,15 +54,16 @@ void __eth_init(void) {
     __cio_printf("ETH INT_LINE: %02x\n", eth_pci.int_line);
     #endif
 
+    // soft reset the device
+    *((uint8_t*)eth.CSR_MM_BA + ETH_PORT) = ETH_SOFT_RESET;
+    __delay(10); // this delay is longer than needed
+
     // install the ISR on the correct vector number from the PCI config register
     __install_isr(eth_pci.int_line, &__eth_isr);
 
     // use linear addressing
     __eth_load_CU_base(0x0);
     __eth_load_RU_base(0x0);
-
-    // enable interrupts
-    // write mask to interrupt bits of CSR (found at the CSR BAR)
 }
 
 // load command unit base addr.
