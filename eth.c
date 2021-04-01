@@ -8,12 +8,18 @@
 #include "support.h"
 #include "common.h"
 
+#ifdef ETH_DEBUG
+#include "cio.h"
+#endif
+
 pci_dev_t eth_pci;
 eth_dev_t eth;
 
 static void __eth_isr(int vector, int code) {
     // TODO
 }
+
+// page 108 for receiving
 
 void __eth_init() {
     // find the device on the PCI bus
@@ -24,6 +30,10 @@ void __eth_init() {
     // get the BARs
     eth.CSR_IO_BAR = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR);
     eth.CSR_MM_BAR = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
+
+    #ifdef ETH_DEBUG
+    cio_printf("ETH IO BAR: %x\n ETH MMIO BAR: %x\n", eth.CSR_IO_BAR, eth.CSR_MM_BAR);
+    #endif
 
     // install the ISR on the correct vector number from the PCI config register
     __install_isr(eth_pci.int_line, &__eth_isr);
