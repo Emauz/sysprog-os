@@ -59,12 +59,42 @@ void __eth_init(void) {
     // install the ISR on the correct vector number from the PCI config register
     __install_isr(eth_pci.int_line, &__eth_isr);
 
-    // load 0x00 into CU Base and RU Base to use linear addressing
-    // use load CU base and load RU base commands of the CSR
-    // ALTERNATIVELY load the start of the tx linked list of commands in CU base and the start of RFD (receive frame data) to RU base (or RU start??) and set CSR general pointer to 0 for all operations
+    // use linear addressing
+    __eth_load_CU_base(0x0);
+    __eth_load_RU_base(0x0);
 
     // enable interrupts
     // write mask to interrupt bits of CSR (found at the CSR BAR)
+}
+
+// load command unit base addr.
+void __eth_load_CU_base(uint32_t base_addr) {
+    // set SCB general pointer
+    *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = base_addr;
+
+    uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
+
+    // cmd_word = xxxx...xxxxx00110xxx
+    cmd_word |= 0b110000;
+    cmd_word &= 0b00110111;
+
+    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
+}
+
+// load receive unit base
+void __eth_load_RU_base(uint32_t base_addr) {
+    // TODO
+}
+
+// command unit start
+void __eth_CU_start(void) {
+    uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
+
+    // cmd_word = xxxx...xxxxx00010xxx
+    cmd_word |= 0b10000;
+    cmd_word &= 0b00010111;
+
+    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
 }
 
 // for TESTING
@@ -75,14 +105,7 @@ void __eth_nop(void) {
     CBL[0] = nop_cmd;
 
     // load CBL addr. into SCB GENERAL ptr.
-    *((void**)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = CBL;
+    *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = (uint32_t)CBL;
 
-    // CU Start command
-    uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
-
-    // cmd_word = xxxx...xxxxx00010xxx
-    cmd_word |= 0b10000;
-    cmd_word &= 0b00010111;
-
-    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
+    __eth_CU_start();
 }

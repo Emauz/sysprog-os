@@ -34,4 +34,9 @@ typedef struct {
 void __eth_init(void);
 void __eth_nop(void);
 
+// SCB commands
+void __eth_load_CU_base(uint32_t base_addr);
+void __eth_load_RU_base(uint32_t base_addr);
+void __eth_CU_start(void);
+
 #endif
