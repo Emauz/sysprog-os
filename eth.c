@@ -55,7 +55,8 @@ void __eth_init(void) {
     #endif
 
     // soft reset the device
-    *((uint8_t*)eth.CSR_MM_BA + ETH_PORT) = ETH_SOFT_RESET;
+    // *((uint8_t*)eth.CSR_MM_BA + ETH_PORT) = ETH_SOFT_RESET;
+    __outb(eth.CSR_IO_BA, ETH_SOFT_RESET);
     __delay(10); // this delay is longer than needed
 
     // install the ISR on the correct vector number from the PCI config register
@@ -69,7 +70,8 @@ void __eth_init(void) {
 // load command unit base addr.
 void __eth_load_CU_base(uint32_t base_addr) {
     // set SCB general pointer
-    *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = base_addr;
+    // *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = base_addr;
+    __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
 
     // uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
 
@@ -78,7 +80,8 @@ void __eth_load_CU_base(uint32_t base_addr) {
     // cmd_word &= 0b00110111;
 
     // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
-    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = 0b110000;
+    // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = 0b110000;
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, 0b110000);
 }
 
 // load receive unit base
@@ -95,7 +98,8 @@ void __eth_CU_start(void) {
     // cmd_word &= 0b00010111;
 
     // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
-    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = 0b10000;
+    // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = 0b10000;
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, 0b10000);
 }
 
 // for TESTING
@@ -106,7 +110,8 @@ void __eth_nop(void) {
     CBL[0] = nop_cmd;
 
     // load CBL addr. into SCB GENERAL ptr.
-    *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = (uint32_t)CBL;
+    // *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = (uint32_t)CBL;
+    __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, (uint32_t)CBL);
 
     __eth_CU_start();
 }
