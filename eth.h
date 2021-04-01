@@ -19,6 +19,11 @@
 #define ETH_PCI_MM_BAR 0x10
 #define ETH_PCI_IO_BAR 0x14
 
+// CSR offsets
+#define ETH_SCB_STATUS_WORD   0x00
+#define ETH_SCB_CMD_WORD      0x02
+#define ETH_SCB_BASE_POINTER  0x04
+
 
 typedef struct {
     uint32_t CSR_MM_BA; // memory mapped base address

@@ -9,6 +9,7 @@
 #include "common.h"
 #include "kdefs.h"
 #include "x86pic.h"
+#include "klib.h"
 
 #ifdef ETH_DEBUG
 #include "cio.h"
@@ -17,8 +18,19 @@
 pci_dev_t eth_pci;
 eth_dev_t eth;
 
+
+uint8_t CBL[2048];
+
+// TX:
+// load CU Base ADDR (probably 0x0)
+// setup CBL w/ a transmit command (set interrupt flag for last block or NOP)
+// execute CU Start from the SCB (in the CSR) w/ SCB general pointer = CBL start addr.
+// profit
+
 static void __eth_isr(int vector, int code) {
     // TODO
+    // read the SCB status word
+    // write a one to that bit when serviced
 
     #ifdef ETH_DEBUG
     __cio_printf("ETH ISR\n");
@@ -53,4 +65,15 @@ void __eth_init(void) {
 
     // enable interrupts
     // write mask to interrupt bits of CSR (found at the CSR BAR)
+}
+
+// for TESTING
+void __eth_nop(void) {
+    // setup the CBL
+    __memset(CBL, 8, 0x0);
+    uint8_t nop_cmd = 0b10100000; // set I and EL bit
+    CBL[0] = nop_cmd;
+
+    // CU Start command
+    *((uint16_t*)eth.CSR_MM_BA) &= (0x1 << 4);
 }
