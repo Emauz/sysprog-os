@@ -21,6 +21,7 @@
 #include "sio.h"
 #include "scheduler.h"
 #include "support.h"
+#include "eth.h"
 #include "test.h"
 
 // need init() and idle() addresses
@@ -180,7 +181,8 @@ void _init( void ) {
     */
 
     // DEBUG test functions
-    __pci_test();
+    //__pci_test();
+    __eth_init();
 
     __cio_puts( "System initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );

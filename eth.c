@@ -7,6 +7,7 @@
 #include "pci.h"
 #include "support.h"
 #include "common.h"
+#include "kdefs.h"
 
 #ifdef ETH_DEBUG
 #include "cio.h"
@@ -21,18 +22,18 @@ static void __eth_isr(int vector, int code) {
 
 // page 108 for receiving
 
-void __eth_init() {
+void __eth_init(void) {
     // find the device on the PCI bus
-    assert(0 == __pci_find_device(&eth_dev, ETH_VENDOR_ID, ETH_DEVICE_ID));
+    assert(0 == __pci_find_device(&eth_pci, ETH_VENDOR_ID, ETH_DEVICE_ID));
 
     // MAYBE issue a reset command, the manual says to do this since it could be a warm reboot but that will never happen so I think we can not
 
     // get the BARs
-    eth.CSR_IO_BAR = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR);
-    eth.CSR_MM_BAR = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
+    eth.CSR_IO_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR);
+    eth.CSR_MM_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
 
     #ifdef ETH_DEBUG
-    cio_printf("ETH IO BAR: %x\n ETH MMIO BAR: %x\n", eth.CSR_IO_BAR, eth.CSR_MM_BAR);
+    __cio_printf("ETH IO BA: %x\n ETH MMIO BA: %x\n", eth.CSR_IO_BA, eth.CSR_MM_BA);
     #endif
 
     // install the ISR on the correct vector number from the PCI config register

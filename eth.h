@@ -26,6 +26,6 @@ typedef struct {
 } eth_dev_t;
 
 // init the ethernet module
-void __eth_init();
+void __eth_init(void);
 
 #endif
