@@ -72,13 +72,14 @@ void __eth_load_CU_base(uint32_t base_addr) {
     // set SCB general pointer
     *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = base_addr;
 
-    uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
+    // uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
 
     // cmd_word = xxxx...xxxxx00110xxx
-    cmd_word |= 0b110000;
-    cmd_word &= 0b00110111;
+    // cmd_word |= 0b110000;
+    // cmd_word &= 0b00110111;
 
-    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
+    // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
+    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = 0b110000;
 }
 
 // load receive unit base
@@ -88,13 +89,14 @@ void __eth_load_RU_base(uint32_t base_addr) {
 
 // command unit start
 void __eth_CU_start(void) {
-    uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
+    // uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
 
     // cmd_word = xxxx...xxxxx00010xxx
-    cmd_word |= 0b10000;
-    cmd_word &= 0b00010111;
+    // cmd_word |= 0b10000;
+    // cmd_word &= 0b00010111;
 
-    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
+    // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
+    *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = 0b10000;
 }
 
 // for TESTING
