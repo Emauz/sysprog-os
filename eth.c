@@ -8,6 +8,7 @@
 #include "support.h"
 #include "common.h"
 #include "kdefs.h"
+#include "x86pic.h"
 
 #ifdef ETH_DEBUG
 #include "cio.h"
@@ -18,6 +19,12 @@ eth_dev_t eth;
 
 static void __eth_isr(int vector, int code) {
     // TODO
+
+    #ifdef ETH_DEBUG
+    __cio_printf("ETH ISR\n");
+    #endif
+
+	__outb(PIC_PRI_CMD_PORT, PIC_EOI);
 }
 
 // page 108 for receiving
