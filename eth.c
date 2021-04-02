@@ -56,6 +56,11 @@ void __eth_init(void) {
     __cio_printf("ETH CMD REG: %04x\n", __pci_read16(eth_pci.bus, eth_pci.slot, eth_pci.function, 4));
     #endif
 
+    // set the device as a PCI master
+    uint8_t cmd_lo = __pci_read8(eth_pci.bus, eth_pci.slot, eth_pci.function, PCI_CMD_REG_OFFSET);
+    cmd_lo |= 0b100;
+    __pci_write8(eth_pci.bus, eth_pci.slot, eth_pci.function, PCI_CMD_REG_OFFSET, cmd_lo);
+
     // check for any active interrupts and acknowledge them
     uint16_t cmd_word = __inw(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
     __delay(100);

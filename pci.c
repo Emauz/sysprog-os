@@ -57,6 +57,20 @@ uint8_t __pci_read8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     return (tmp);
 }
 
+void __pci_write8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint8_t data) {
+    uint32_t address;
+    uint32_t lbus  = (uint32_t)bus;
+    uint32_t lslot = (uint32_t)slot;
+    uint32_t lfunc = (uint32_t)func;
+    uint32_t tmp = 0;
+
+    address = (uint32_t)((lbus << 16) | (lslot << 11) |
+              (lfunc << 8) | (offset & 0xfc) | ((uint32_t)0x80000000));
+
+    __outl(PCI_CONFIG_ADDR_PORT, address);
+    __outb(PCI_CONFIG_DATA_PORT, data);
+}
+
 int __pci_find_device(pci_dev_t* dev, uint16_t vendorID, uint16_t deviceID) {
     for(int bus = 0; bus < 256; bus++) {
         for(int slot = 0; slot < 32; slot++) {
