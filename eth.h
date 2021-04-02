@@ -29,13 +29,13 @@
 // PORT commands
 #define ETH_SOFT_RESET  0x00
 
-// CUC commands (part of SCB command word)
-#define ETH_CU_NOP       0b0000
-#define ETH_CU_START     0b0001
-#define ETH_CU_RESUME    0b0010
-#define ETH_LOAD_CU_BASE 0b0110
+// CUC commands (load into SCB LSB)
+#define ETH_CU_NOP       (0b0000 << 4)
+#define ETH_CU_START     (0b0001 << 4)
+#define ETH_CU_RESUME    (0b0010 << 4)
+#define ETH_LOAD_CU_BASE (0b0110 << 4)
 
-// RUC commands (part of SCB command word)
+// RUC commands (load into SCB LSB)
 #define ETH_RU_NOP       0b000
 #define ETH_RU_START     0b001
 #define ETH_RU_RESUME    0b010
@@ -55,8 +55,9 @@ void __eth_init(void);
 void __eth_nop(void);
 
 // SCB commands
+void __enable_scb_swi(void);
 void __eth_load_CU_base(uint32_t base_addr);
 void __eth_load_RU_base(uint32_t base_addr);
-void __eth_CU_start(void);
+void __eth_CU_start(uint8_t* CBL_Start);
 
 #endif

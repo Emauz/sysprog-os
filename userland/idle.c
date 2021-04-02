@@ -18,7 +18,7 @@ int idle( uint32_t arg1, uint32_t arg2 ) {
     // ignore the command-line arguments
     (void) arg1;
     (void) arg2;
-    
+
     // get some data about our starting point
     me = getpid();
     now = gettime();
@@ -27,7 +27,7 @@ int idle( uint32_t arg1, uint32_t arg2 ) {
     sprint( buf, "Idle [%d] started at %d\n", me, (int32_t) now );
     cwrites( buf );
 
-    write( CHAN_SIO, &ch, 1 );
+    // write( CHAN_SIO, &ch, 1 );
 
     // idle() should never block - it must always be available
     // for dispatching when we need to pick a new current process

@@ -13,6 +13,7 @@
 
 #ifdef ETH_DEBUG
 #include "cio.h"
+#include "sio.h"
 #endif
 
 pci_dev_t eth_pci;
@@ -55,9 +56,12 @@ void __eth_init(void) {
     #endif
 
     // soft reset the device
-    // *((uint8_t*)eth.CSR_MM_BA + ETH_PORT) = ETH_SOFT_RESET;
-    __outb(eth.CSR_IO_BA, ETH_SOFT_RESET);
-    __delay(10); // this delay is longer than needed
+    // __outb(eth.CSR_IO_BA + ETH_PORT, ETH_SOFT_RESET);
+    // __delay(100); // this delay is longer than needed
+
+    // #ifdef ETH_DEBUG
+    // __enable_scb_swi();
+    // #endif
 
     // install the ISR on the correct vector number from the PCI config register
     __install_isr(eth_pci.int_line, &__eth_isr);
@@ -65,41 +69,77 @@ void __eth_init(void) {
     // use linear addressing
     __eth_load_CU_base(0x0);
     __eth_load_RU_base(0x0);
+
+    #ifdef ETH_DEBUG
+    __cio_printf("eth init done\n");
+    #endif
+
+    // send config command
+    // need to set a bit in byte 8 for PHY enable
+}
+
+void __enable_scb_swi(void) {
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD + 1, 0b10);
 }
 
 // load command unit base addr.
 void __eth_load_CU_base(uint32_t base_addr) {
+    uint8_t cmd_lsb;
+    while((cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD))) {
+        #ifdef ETH_DEBUG
+        __cio_printf("cmd still executing: %02x\n", cmd_lsb);
+        __delay(100);
+        #endif
+    }
+
+    #ifdef ETH_DEBUG
+    __cio_printf("load cu base\n");
+    #endif
+
     // set SCB general pointer
-    // *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = base_addr;
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
 
-    // uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
-
-    // cmd_word = xxxx...xxxxx00110xxx
-    // cmd_word |= 0b110000;
-    // cmd_word &= 0b00110111;
-
-    // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
-    // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = 0b110000;
-    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, 0b110000);
+    // execute load CU base SCB command
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_CU_BASE);
 }
 
 // load receive unit base
 void __eth_load_RU_base(uint32_t base_addr) {
-    // TODO
+    uint8_t cmd_lsb;
+    while((cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD))) {
+        #ifdef ETH_DEBUG
+        __cio_printf("cmd still executing: %02x\n", cmd_lsb);
+        __delay(100);
+        #endif
+    }
+
+    #ifdef ETH_DEBUG
+    __cio_printf("load ru base\n");
+    #endif
+
+    // set SCB general pointer
+    __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
+
+    // execute load RU base SCB command
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_RU_BASE);
 }
 
 // command unit start
-void __eth_CU_start(void) {
-    // uint16_t cmd_word = *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD);
+void __eth_CU_start(uint8_t* CBL_Start) {
+    uint8_t cmd_lsb;
+    while((cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD))) {
+        #ifdef ETH_DEBUG
+        __cio_printf("cmd still executing: %02x\n", cmd_lsb);
+        __delay(100);
+        #endif
+    }
 
-    // cmd_word = xxxx...xxxxx00010xxx
-    // cmd_word |= 0b10000;
-    // cmd_word &= 0b00010111;
+    #ifdef ETH_DEBUG
+    __cio_printf("CU start\n");
+    #endif
 
-    // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = cmd_word;
-    // *((uint16_t*)eth.CSR_MM_BA + ETH_SCB_CMD_WORD) = 0b10000;
-    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, 0b10000);
+    __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, (uint32_t)CBL_Start);
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_CU_START);
 }
 
 // for TESTING
@@ -118,5 +158,5 @@ void __eth_nop(void) {
     // *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = (uint32_t)CBL;
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, (uint32_t)CBL);
 
-    __eth_CU_start();
+    __eth_CU_start(CBL);
 }
