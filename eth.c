@@ -106,7 +106,7 @@ void __eth_CU_start(void) {
 void __eth_nop(void) {
     // setup the CBL
     __memset(CBL, 8, 0x0);
-    uint8_t nop_cmd = 0b10100000; // set I and EL bit
+    uint8_t nop_cmd = 0b00000101; // set I and EL bit
     CBL[3] = nop_cmd;
 
     #ifdef ETH_DEBUG
