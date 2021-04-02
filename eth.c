@@ -109,6 +109,11 @@ void __eth_nop(void) {
     uint8_t nop_cmd = 0b10100000; // set I and EL bit
     CBL[3] = nop_cmd;
 
+    #ifdef ETH_DEBUG
+    __cio_printf("%02x %02x %02x %02x\n%02x %02x %02x %02x\n",
+                  CBL[0], CBL[1], CBL[2], CBL[3], CBL[4], CBL[5], CBL[6], CBL[7]);
+    #endif
+
     // load CBL addr. into SCB GENERAL ptr.
     // *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = (uint32_t)CBL;
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, (uint32_t)CBL);
