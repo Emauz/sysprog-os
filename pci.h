@@ -32,7 +32,7 @@ uint16_t __pci_read16(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
 uint32_t __pci_read32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
 
 // write n bits to PCI device
-void __pci_write8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint8_t data);
+void __pci_write32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint32_t data);
 
 // fill in dev w/ PCI info for device matching vendorID and deviceID
 // checks all possible PCI addresses for a device with matching ID's
