@@ -68,7 +68,7 @@ void __pci_write8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint8
               (lfunc << 8) | (offset & 0xfc) | ((uint32_t)0x80000000));
 
     __outl(PCI_CONFIG_ADDR_PORT, address);
-    __outb(PCI_CONFIG_DATA_PORT, data);
+    __outl(PCI_CONFIG_DATA_PORT, (uint32_t)data);
 }
 
 int __pci_find_device(pci_dev_t* dev, uint16_t vendorID, uint16_t deviceID) {
