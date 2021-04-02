@@ -1,0 +1,177 @@
+GAS LISTING klibs.s 			page 1
+
+
+   1              	# 1 "klibs.S"
+   1              	/**
+   0              	
+   0              	
+   2              	** @file klibs.S
+   3              	**
+   4              	** @author Jon Coles
+   5              	** @author Warren R. Carithers
+   6              	** @author K. Reek
+   7              	**
+   8              	** Support library functions (assembly language)
+   9              	**
+  10              	** These functions are support routines used in various places
+  11              	** throughout the framework.  They are written in assembly language
+  12              	** for efficiency and/or because they require access to machine-level
+  13              	** features that are hard to access from C.
+  14              	*/
+  15              	
+  16              	#define SP_KERNEL_SRC
+  17              	#define SP_ASM_SRC
+  18              	
+  19              	/*
+  20              	** Parameter offsets
+  21              	*/
+  22              	ARG1	= 8			// Offset to 1st argument
+  23              	ARG2	= 12			// Offset to 2nd argument
+  24              	
+  25              	/**
+  26              	** Name:	__inb, __inw, __inl
+  27              	**
+  28              	** Description: read a single byte, word, or longword from the specified
+  29              	**		input port
+  30              	**
+  31              	** usage:  data = __in*( unsigned short port );
+  32              	**
+  33              	** @param port   The port from which to read
+  34              	**
+  35              	** @return The data from that port
+  36              	*/
+  37              		.globl	__inb, __inw, __inl
+  38              	
+  39              	__inb:
+  40 0000 55       		pushl	%ebp
+  41 0001 89E5     		movl	%esp, %ebp
+  42 0003 31C0     		xorl	%eax, %eax  	  // Clear the high order bytes of %eax
+  43 0005 8B5508   		movl	ARG1(%ebp), %edx  // Move port number to %edx
+  44 0008 EC       		inb 	(%dx)	    	  // Get a byte from the port into %al (low
+  45 0009 5D       		popl	%ebp	    	  //   byte of %eax)
+  46 000a C3       		ret
+  47              	
+  48              	__inw:
+  49 000b 55       		pushl	%ebp
+  50 000c 89E5     		movl	%esp, %ebp
+  51 000e 31C0     		xorl	%eax, %eax        // Clear the high order bytes of %eax
+  52 0010 8B5508   		movl	ARG1(%ebp), %edx  // Move port number to %edx
+  53 0013 66ED     		inw 	(%dx)		  // Get a word from the port into %ax (low
+  54 0015 5D       		popl	%ebp		  //   word of %eax)
+GAS LISTING klibs.s 			page 2
+
+
+  55 0016 C3       		ret
+  56              	
+  57              	__inl:
+  58 0017 55       		pushl	%ebp
+  59 0018 89E5     		movl	%esp, %ebp
+  60 001a 31C0     		xorl	%eax, %eax	  // Clear the high order bytes of %eax
+  61 001c 8B5508   		movl	ARG1(%ebp), %edx  // Move port number to %edx
+  62 001f ED       		inl 	(%dx)		  // Get a longword from the port into %eax
+  63 0020 5D       		popl	%ebp
+  64 0021 C3       		ret
+  65              		
+  66              	/**
+  67              	** Name:	__outb, __outw, __outl
+  68              	**
+  69              	** Description: write a single byte, word, or longword to the specified
+  70              	**		output port
+  71              	**
+  72              	** usage:  __out*( uint16_t port, uint* data );
+  73              	**
+  74              	** @param port   The port to be written to
+  75              	** @param data   The data to write to that port
+  76              	*/
+  77              		.globl	__outb, __outw, __outl
+  78              	__outb:
+  79 0022 55       		pushl	%ebp
+  80 0023 89E5     		movl	%esp, %ebp
+  81 0025 8B5508   		movl	ARG1(%ebp), %edx	// Get the port number into %edx,
+  82 0028 8B450C   		movl	ARG2(%ebp), %eax	//   and the value into %eax
+  83 002b EE       		outb	(%dx)		        // Output that byte to the port
+  84 002c 5D       		popl	%ebp		        //   (only %al is sent)
+  85 002d C3       		ret
+  86              	
+  87              	__outw:
+  88 002e 55       		pushl	%ebp
+  89 002f 89E5     		movl	%esp, %ebp
+  90 0031 8B5508   		movl	ARG1(%ebp), %edx	// Get the port number into %edx,
+  91 0034 8B450C   		movl	ARG2(%ebp), %eax	//   and the value into %eax
+  92 0037 66EF     		outw	(%dx)		        // Output that word to the port.
+  93 0039 5D       		popl	%ebp		        //   (only %ax is sent)
+  94 003a C3       		ret
+  95              	
+  96              	__outl:
+  97 003b 55       		pushl	%ebp
+  98 003c 89E5     		movl	%esp, %ebp
+  99 003e 8B5508   		movl	ARG1(%ebp), %edx	// Get the port number into %edx,
+ 100 0041 8B450C   		movl	ARG2(%ebp), %eax	//   and the value into %eax
+ 101 0044 EF       		outl	(%dx)		        // Output that longword to the port.
+ 102 0045 5D       		popl	%ebp
+ 103 0046 C3       		ret
+ 104              	
+ 105              	/**
+ 106              	** __get_flags: return the current processor flags
+ 107              	**
+ 108              	** usage:  unsigned int __get_flags( void );
+ 109              	**
+ 110              	** @return The EFLAGS register after entry to this function
+ 111              	*/
+GAS LISTING klibs.s 			page 3
+
+
+ 112              		.globl	__get_flags
+ 113              	
+ 114              	__get_flags:
+ 115 0047 9C       		pushfl			// Push flags on the stack,
+ 116 0048 58       		popl	%eax	//   and pop them into eax.
+ 117 0049 C3       		ret
+ 118              	
+ 119              	/**
+ 120              	** __pause: halt until something happens
+ 121              	**      void __pause( void );
+ 122              	*/
+ 123              		.globl	__pause
+ 124              	
+ 125              	__pause:
+ 126 004a 55       		pushl	%ebp
+ 127 004b 89E5     		movl	%esp, %ebp
+ 128 004d FB       		sti
+ 129 004e F4       		hlt
+ 130 004f 5D       		popl	%ebp
+ 131 0050 C3       		ret
+ 132              	
+ 133              	/**
+ 134              	** __get_ra: get the return address for the calling function
+ 135              	**           (i.e., where whoever called us will go back to)
+ 136              	**	uint32_t __get_ra( void );
+ 137              	**
+ 138              	** @return The address the calling routine will return to as a uint32_t
+ 139              	*/
+ 140              		.global	__get_ra
+ 141              	
+ 142              	__get_ra:
+ 143              		// DO NOT create a stack frame - use the caller's
+ 144              		//
+ 145              		// Caller's return address is between the saved EBP
+ 146              		// and its first parameter
+ 147 0051 8B4504   		movl	4(%ebp), %eax
+ 148 0054 C3       		ret
+GAS LISTING klibs.s 			page 4
+
+
+DEFINED SYMBOLS
+             klibs.S:22     *ABS*:0000000000000008 ARG1
+             klibs.S:23     *ABS*:000000000000000c ARG2
+             klibs.S:39     .text:0000000000000000 __inb
+             klibs.S:48     .text:000000000000000b __inw
+             klibs.S:57     .text:0000000000000017 __inl
+             klibs.S:78     .text:0000000000000022 __outb
+             klibs.S:87     .text:000000000000002e __outw
+             klibs.S:96     .text:000000000000003b __outl
+             klibs.S:114    .text:0000000000000047 __get_flags
+             klibs.S:125    .text:000000000000004a __pause
+             klibs.S:142    .text:0000000000000051 __get_ra
+
+NO UNDEFINED SYMBOLS

@@ -27,7 +27,8 @@
 #define ETH_PORT                 0x08
 
 // PORT commands
-#define ETH_SOFT_RESET  0x00
+#define ETH_SOFT_RESET       0x00
+#define ETH_SELECTIVE_RESET  0x02
 
 // CUC commands (load into SCB LSB)
 #define ETH_CU_NOP       (0b0000 << 4)
