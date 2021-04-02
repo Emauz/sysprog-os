@@ -50,16 +50,22 @@ void __eth_init(void) {
     eth.CSR_IO_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR);
     eth.CSR_MM_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
 
-    // #ifdef ETH_DEBUG
-    // __cio_printf("\nETH IO BA: %x\nETH MMIO BA: %x\n", eth.CSR_IO_BA, eth.CSR_MM_BA);
-    // __cio_printf("ETH INT_LINE: %02x\n", eth_pci.int_line);
-    // #endif
+    #ifdef ETH_DEBUG
+    __cio_printf("\nETH IO BA: %x\nETH MMIO BA: %x\n", eth.CSR_IO_BA, eth.CSR_MM_BA);
+    __cio_printf("ETH INT_LINE: %02x\n", eth_pci.int_line);
+    __cio_printf("ETH CMD REG: %04x\n", __pci_read16(eth_pci.bus, eth_pci.slot, eth_pci.function, 4));
+    #endif
+
+    // check for any active interrupts and acknowledge them
+    uint16_t cmd_word = __inw(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
+    __delay(100);
+    __outw(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD, cmd_word);
 
     // soft reset the device
     // __outb(eth.CSR_IO_BA + ETH_PORT, ETH_SOFT_RESET);
     // __delay(100); // this delay is longer than needed
 
-    __disable_int();
+    // __eth_disable_int();
 
     // install the ISR on the correct vector number from the PCI config register
     __install_isr(eth_pci.int_line, &__eth_isr);
@@ -75,17 +81,17 @@ void __eth_init(void) {
     // send config command
     // need to set a bit in byte 8 for PHY enable
 
-    __enable_int();
+    __eth_enable_int();
 }
 
 // disable interrupts
 // change M bit in SCB command word MSB
-void __disable_int(void) {
+void __eth_disable_int(void) {
     __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD + 1, 0b10);
 }
 
 // enable interrupts w/ M bit in SCB command word MSB
-void __enable_int(void) {
+void __eth_enable_int(void) {
     __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD + 1, 0b00);
 }
 
@@ -94,7 +100,7 @@ void __eth_load_CU_base(uint32_t base_addr) {
     uint8_t cmd_lsb;
     while((cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD))) {
         #ifdef ETH_DEBUG
-        __cio_printf("cmd still executing: %02x\n", cmd_lsb);
+        // __cio_printf("cmd still executing: %02x\n", cmd_lsb);
         __delay(100);
         #endif
     }
@@ -115,7 +121,7 @@ void __eth_load_RU_base(uint32_t base_addr) {
     uint8_t cmd_lsb;
     while((cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD))) {
         #ifdef ETH_DEBUG
-        __cio_printf("cmd still executing: %02x\n", cmd_lsb);
+        // __cio_printf("cmd still executing: %02x\n", cmd_lsb);
         __delay(100);
         #endif
     }
@@ -125,7 +131,7 @@ void __eth_load_RU_base(uint32_t base_addr) {
     #endif
 
     // set SCB general pointer
-    __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
+    __outb(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
 
     // execute load RU base SCB command
     __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_RU_BASE);
@@ -134,9 +140,9 @@ void __eth_load_RU_base(uint32_t base_addr) {
 // command unit start
 void __eth_CU_start(uint8_t* CBL_Start) {
     uint8_t cmd_lsb;
-    while((cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD))) {
+    while((cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD)) & (0x00f0 | 0x007)) { // magic?
         #ifdef ETH_DEBUG
-        __cio_printf("cmd still executing: %02x\n", cmd_lsb);
+        // __cio_printf("cmd still executing: %02x\n", cmd_lsb);
         __delay(100);
         #endif
     }
