@@ -50,18 +50,16 @@ void __eth_init(void) {
     eth.CSR_IO_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR);
     eth.CSR_MM_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
 
-    #ifdef ETH_DEBUG
-    __cio_printf("\nETH IO BA: %x\nETH MMIO BA: %x\n", eth.CSR_IO_BA, eth.CSR_MM_BA);
-    __cio_printf("ETH INT_LINE: %02x\n", eth_pci.int_line);
-    #endif
+    // #ifdef ETH_DEBUG
+    // __cio_printf("\nETH IO BA: %x\nETH MMIO BA: %x\n", eth.CSR_IO_BA, eth.CSR_MM_BA);
+    // __cio_printf("ETH INT_LINE: %02x\n", eth_pci.int_line);
+    // #endif
 
     // soft reset the device
     // __outb(eth.CSR_IO_BA + ETH_PORT, ETH_SOFT_RESET);
     // __delay(100); // this delay is longer than needed
 
-    // #ifdef ETH_DEBUG
-    // __enable_scb_swi();
-    // #endif
+    __disable_int();
 
     // install the ISR on the correct vector number from the PCI config register
     __install_isr(eth_pci.int_line, &__eth_isr);
@@ -76,10 +74,19 @@ void __eth_init(void) {
 
     // send config command
     // need to set a bit in byte 8 for PHY enable
+
+    __enable_int();
 }
 
-void __enable_scb_swi(void) {
+// disable interrupts
+// change M bit in SCB command word MSB
+void __disable_int(void) {
     __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD + 1, 0b10);
+}
+
+// enable interrupts w/ M bit in SCB command word MSB
+void __enable_int(void) {
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD + 1, 0b00);
 }
 
 // load command unit base addr.

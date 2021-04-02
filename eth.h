@@ -55,7 +55,8 @@ void __eth_init(void);
 void __eth_nop(void);
 
 // SCB commands
-void __enable_scb_swi(void);
+void __disable_int(void);
+void __enable_int(void);
 void __eth_load_CU_base(uint32_t base_addr);
 void __eth_load_RU_base(uint32_t base_addr);
 void __eth_CU_start(uint8_t* CBL_Start);
