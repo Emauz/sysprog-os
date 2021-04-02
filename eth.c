@@ -84,10 +84,11 @@ void __eth_init(void) {
     __cio_printf("eth init done\n");
     #endif
 
+    // TODO
     // send config command
     // need to set a bit in byte 8 for PHY enable
 
-    __eth_enable_int();
+    // __eth_enable_int();
 }
 
 // disable interrupts
