@@ -50,7 +50,7 @@ void __eth_init(void) {
     eth.CSR_MM_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
 
     #ifdef ETH_DEBUG
-    __cio_printf("ETH IO BA: %x\nETH MMIO BA: %x\n", eth.CSR_IO_BA, eth.CSR_MM_BA);
+    __cio_printf("\nETH IO BA: %x\nETH MMIO BA: %x\n", eth.CSR_IO_BA, eth.CSR_MM_BA);
     __cio_printf("ETH INT_LINE: %02x\n", eth_pci.int_line);
     #endif
 

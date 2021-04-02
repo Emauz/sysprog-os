@@ -137,6 +137,11 @@ void _init( void ) {
     _clk_init();
     _sio_init();
 
+    // DEBUG test functions
+    //__pci_test();
+    __eth_init();
+    __eth_nop();
+    
     __cio_puts( "\nModule initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );
     __delay( 200 );  // about 5 seconds
@@ -179,11 +184,6 @@ void _init( void ) {
     **
     ** Finally, report that we're all done.
     */
-
-    // DEBUG test functions
-    //__pci_test();
-    __eth_init();
-    __eth_nop();
 
     __cio_puts( "System initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );
