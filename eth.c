@@ -35,6 +35,9 @@ static void __eth_isr(int vector, int code) {
     // read the SCB status word
     // write a one to that bit when serviced
 
+    // ack all interrupts
+    __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
+
     __cio_printf("%04x\n", eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
 
     #ifdef ETH_DEBUG
@@ -65,9 +68,9 @@ void __eth_init(void) {
     #endif
 
     // check for any active interrupts and acknowledge them
-    uint16_t cmd_word = __inw(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
+    __inw(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
     __delay(100);
-    __outw(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD, cmd_word);
+    __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
 
     // selective reset
     __outl(eth.CSR_IO_BA + ETH_PORT, ETH_SELECTIVE_RESET);
@@ -143,17 +146,14 @@ void __eth_load_RU_base(uint32_t base_addr) {
 
 // command unit start
 void __eth_CU_start(uint8_t* CBL_Start) {
-    uint8_t cmd_lsb;
-    while((cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD))) {
+    uint8_t cmd_lsb =  __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD);
+    while(cmd_lsb) {
         #ifdef ETH_DEBUG
-        // __cio_printf("cmd still executing: %02x\n", cmd_lsb);
-        __delay(100);
+        __cio_printf("cmd still executing: %02x\n", cmd_lsb);
         #endif
+        cmd_lsb = __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD);
+        __delay(100);
     }
-
-    #ifdef ETH_DEBUG
-    __cio_printf("CU start\n");
-    #endif
 
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, (uint32_t)CBL_Start);
     __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_CU_START);

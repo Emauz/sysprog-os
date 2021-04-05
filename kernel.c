@@ -140,6 +140,7 @@ void _init( void ) {
     // DEBUG test functions
     //__pci_test();
     __eth_init();
+    __eth_nop();
 
     __cio_puts( "\nModule initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );
