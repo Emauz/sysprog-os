@@ -233,6 +233,9 @@ QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw -device i82557b
 qemu: usb.image 
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 
+# qemu local
+qemul:
+	qemu-system-i386 -serial mon:stdio $(QEMUOPTS)
 
 #
 # 'makedepend' is a program which creates dependency lists by looking
