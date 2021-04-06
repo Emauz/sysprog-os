@@ -36,9 +36,10 @@ static void __eth_isr(int vector, int code) {
     // write a one to that bit when serviced
 
     // ack all interrupts
+    __cio_printf("%04x\n", eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
+
     __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
 
-    __cio_printf("%04x\n", eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
 
     #ifdef ETH_DEBUG
     __cio_printf("ETH ISR\n");
@@ -90,7 +91,9 @@ void __eth_init(void) {
 
     // use linear addressing
     __eth_load_CU_base(0x0);
+    __cio_printf("stat: %04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD));
     __eth_load_RU_base(0x0);
+    __cio_printf("stat: %04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD));
 
 
     // TODO
@@ -161,6 +164,7 @@ void __eth_CU_start(uint8_t* CBL_Start) {
 
 // for TESTING
 void __eth_nop(void) {
+    __cio_printf("stat: %04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD));
     // setup the CBL
     __memset(CBL, 8, 0x0);
     uint8_t nop_cmd = 0b00000101; // set I and EL bit

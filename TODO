@@ -1,0 +1,52 @@
+driver interface:
+
+
+__eth_init()
+__eth_setaddr(uint32_t ip_addr) // blocking
+__eth_transmit(uint8_t* packet, size_t len) // takes process off the ready queue until sent
+// received packets get queued and then wake up higher layers to deal with it
+
+
+
+
+ipv4 layer interface:
+
+__ipv4_init()
+
+// return offset of how big header is OR return pointer to first address after header in buffer OR -1 if ran out of space
+__ipv4_add_header(uint8_t* buffer, size_t len) // len is max len of buffer, should be enough space for ipv4 header + UDP header + payload
+
+
+
+
+UDP layer interface:
+
+__udp_init()
+
+// return offset of how big header is OR return pointer to first address after header in buffer OR -1 if ran out of space
+__udp_add_header(uint8_t* buffer, size_t len) // len is max len of buffer, should be enough space for ipv4 header + UDP header + payload
+
+
+
+syscalls:
+
+typedef struct {
+    uint32_t addr
+    uint16_t port
+} endpoint_t; // maybe name something else that is better
+
+setaddr(uint32_t ip)
+send(uint8_t* data, size_t len, endpoint_t*, uint16_t src_port) // send a packet to endpoint from src_port
+recv(uint8_t* buffer, size_t len, endpoint_t*, uint16_t dest_port) // receive a packet from endpoint addressed to dest_port
+
+OPTIONALLY could have a bind syscall and need to request a port from the kernel to use
+
+
+2 options:
+socket -> udp -> ipv4 -> eth
+
+socket -> ipv4
+       -> udp
+       -> eth
+
+go with second option in case we want to add more protocols
