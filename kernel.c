@@ -138,9 +138,9 @@ void _init( void ) {
     _sio_init();
 
     // DEBUG test functions
-    //__pci_test();
+    // __pci_test();
     __eth_init();
-    __eth_nop();
+    // __eth_nop();
 
     __cio_puts( "\nModule initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );

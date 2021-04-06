@@ -42,13 +42,18 @@
 #define ETH_RU_RESUME    0b010
 #define ETH_LOAD_RU_BASE 0b110
 
-// CU action commands
-// TODO
+// action commands
+#define ETH_ACT_CMD_EL_MASK   0b1 << 15
+#define ETH_ACT_CMD_I_MASK    0b1 << 13
+#define ETH_ACT_CMD_LOAD_ADDR 0b1
+#define ETH_LINK_ADDR_OFFSET  0x04
 
 
 typedef struct {
     uint32_t CSR_MM_BA; // memory mapped base address
     uint32_t CSR_IO_BA; // i/o address space base address (only one of these is necessary)
+    uint8_t* next_cmd; // pointer to next free command
+    uint8_t* last_cmd;
 } eth_dev_t;
 
 // init the ethernet module

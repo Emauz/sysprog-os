@@ -22,24 +22,34 @@ eth_dev_t eth;
 
 uint8_t CBL[2048];
 
-// TX:
-// load CU Base ADDR (probably 0x0)
-// setup CBL w/ a transmit command (set interrupt flag for last block or NOP)
-// execute CU Start from the SCB (in the CSR) w/ SCB general pointer = CBL start addr.
-// profit
-// page 108 for receiving
+typedef struct {
+    uint16_t status_word;
+    uint16_t cmd_word;
+    uint32_t link_addr;
+    uint32_t IA_addr;
+    uint16_t IA_pad; // extra word for longer addresses (no need for ipv4)
+} AddrSetupActionCmd_t;
+
+typedef struct {
+    // TODO
+} TxActionCmd_t;
+
+
+void __eth_loadaddr(uint32_t addr) {
+    // disable interrupts
+    // wait until CU is idle??
+    ptr = (AddrSetupActionCmd_t*)CBL;
+    ptr[0]->status_word = ETH_ACT_CMD_LOAD_ADDR;
+    ptr[0]->status_word |= ETH_ACT_CMD_EL_MASK;
+    ptr[0]->status_word |= ETH_ACT_CMD_I_MASK;
+}
 
 
 static void __eth_isr(int vector, int code) {
-    // TODO
-    // read the SCB status word
-    // write a one to that bit when serviced
-
     // ack all interrupts
     __cio_printf("%04x\n", eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
 
     __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
-
 
     #ifdef ETH_DEBUG
     __cio_printf("ETH ISR\n");
@@ -55,6 +65,10 @@ void __eth_init(void) {
     // get the BARs
     eth.CSR_IO_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR) & 0xFFF0;
     // eth.CSR_MM_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
+
+    // set command locations up
+    eth.next_cmd = CBL;
+    eth.last_cmd = NULL;
 
     // set the device as a PCI master
     uint32_t cmd = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, PCI_CMD_REG_OFFSET);
@@ -94,7 +108,6 @@ void __eth_init(void) {
     __cio_printf("stat: %04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD));
     __eth_load_RU_base(0x0);
     __cio_printf("stat: %04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD));
-
 
     // TODO
     // send config command
