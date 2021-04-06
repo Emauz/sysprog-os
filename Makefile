@@ -228,14 +228,20 @@ prog.dis: prog.o
 
 # qemu emulation
 QEMU = /home/course/csci352/bin/qemu-system-i386
-QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw -device i82557b
+QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw
+QEMUBASICNET = -device i82557b
+QEMUNETCAP = -net nic,model=i82557b -net dump,file=net.pcap
 
-qemu: usb.image 
-	$(QEMU) -serial mon:stdio $(QEMUOPTS)
+qemu: usb.image
+	$(QEMU) -serial mon:stdio $(QEMUOPTS) $(QEMUBASICNET)
 
 # qemu local
 qemul:
-	qemu-system-i386 -serial mon:stdio $(QEMUOPTS)
+	qemu-system-i386 -serial mon:stdio $(QEMUOPTS) $(QEMUBASICNET)
+
+# qemu with ethernet capture
+qemucap:
+	qemu-system-i386 -serial mon:stdio $(QEMUOPTS) $(QEMUNETCAP)
 
 #
 # 'makedepend' is a program which creates dependency lists by looking

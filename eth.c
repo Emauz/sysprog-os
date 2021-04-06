@@ -35,10 +35,17 @@ typedef struct {
 } AddrSetupActionCmd_t;
 
 typedef struct {
-    // TODO
+    uint16_t status_word;
+    uint16_t cmd_word;
+    uint32_t link_addr;
+    uint32_t tbd_array_addr;
+    uint16_t byte_cnt;
+    uint8_t tx_threshold;
+    uint8_t TBD_number;
 } TxActionCmd_t;
 
 
+// TODO add return errors
 void __eth_loadaddr(uint32_t addr) {
     // if CU busy, queue up to run after interrupt happens
     // dequeue in ISR and call CU_START
@@ -55,10 +62,38 @@ void __eth_loadaddr(uint32_t addr) {
 }
 
 
+// TODO add return errors
+// start a transmit command in simple mode
+// len must be 14 bits max
+void __eth_tx(uint8_t* data, uint16_t len) {
+    // if CU busy, queue up to run after interrupt happens
+    // dequeue in ISR and call CU_START
+
+    // setup cmd
+    TxActionCmd_t* ptr = (TxActionCmd_t*)CBL;
+    ptr->cmd_word = ETH_ACT_CMD_TX;
+    ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
+    ptr->cmd_word |= ETH_ACT_CMD_I_MASK;
+    ptr->tbd_array_addr = 0x0; // NULL pointer (in simple mode)
+
+    // TODO check that len is 14 bits (top two bits are zero)
+    ptr->byte_cnt = ((len << 2) >> 2); // clear the top two bits just in case
+
+    ptr->tx_threshold = 1; // 1 byte in the FIFO triggers a send
+    ptr->TBD_number = 0x0; // doesn't matter in simple mode, zero anyways just in case
+
+    // in simplified mode, the data goes directly after the command block
+    __memcpy(ptr + 1, data, len);
+
+    // start the CU executing
+    __eth_CU_start(CBL);
+}
+
+
 static void __eth_isr(int vector, int code) {
-    // ack all interrupts
     __cio_printf("%04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1));
 
+    // ack all interrupts
     __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
 
     #ifdef ETH_DEBUG
@@ -67,8 +102,6 @@ static void __eth_isr(int vector, int code) {
 
 	// __outb(PIC_PRI_CMD_PORT, PIC_EOI);
     __outb(PIC_SEC_CMD_PORT, PIC_EOI);
-
-    // __eth_nop();
 }
 
 void __eth_init(void) {

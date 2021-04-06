@@ -47,6 +47,7 @@
 #define ETH_ACT_CMD_I_MASK    0b1 << 13
 #define ETH_ACT_CMD_LOAD_ADDR 0b1
 #define ETH_LINK_ADDR_OFFSET  0x04
+#define ETH_ACT_CMD_TX        0b100
 
 
 typedef struct {
