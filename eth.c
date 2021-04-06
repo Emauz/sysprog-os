@@ -19,8 +19,12 @@
 pci_dev_t eth_pci;
 eth_dev_t eth;
 
+#define CBL_SIZE 2048
 
-uint8_t CBL[2048];
+uint8_t CBL_start[CBL_SIZE];
+uint8_t* CBL_end;
+uint8_t* CBL;
+
 
 typedef struct {
     uint16_t status_word;
@@ -36,18 +40,24 @@ typedef struct {
 
 
 void __eth_loadaddr(uint32_t addr) {
-    // disable interrupts
-    // wait until CU is idle??
-    ptr = (AddrSetupActionCmd_t*)CBL;
-    ptr[0]->status_word = ETH_ACT_CMD_LOAD_ADDR;
-    ptr[0]->status_word |= ETH_ACT_CMD_EL_MASK;
-    ptr[0]->status_word |= ETH_ACT_CMD_I_MASK;
+    // if CU busy, queue up to run after interrupt happens
+    // dequeue in ISR and call CU_START
+    // TODO
+
+    // setup cmd
+    AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)CBL;
+    ptr->cmd_word = ETH_ACT_CMD_LOAD_ADDR;
+    ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
+    ptr->cmd_word |= ETH_ACT_CMD_I_MASK;
+    ptr->IA_addr = addr;
+
+    __eth_CU_start(CBL);
 }
 
 
 static void __eth_isr(int vector, int code) {
     // ack all interrupts
-    __cio_printf("%04x\n", eth.CSR_IO_BA + ETH_SCB_STATUS_WORD);
+    __cio_printf("%04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1));
 
     __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
 
@@ -55,20 +65,23 @@ static void __eth_isr(int vector, int code) {
     __cio_printf("ETH ISR\n");
     #endif
 
-	__outb(PIC_PRI_CMD_PORT, PIC_EOI);
+	// __outb(PIC_PRI_CMD_PORT, PIC_EOI);
+    __outb(PIC_SEC_CMD_PORT, PIC_EOI);
+
+    // __eth_nop();
 }
 
 void __eth_init(void) {
     // find the device on the PCI bus
     assert(0 == __pci_find_device(&eth_pci, ETH_VENDOR_ID, ETH_DEVICE_ID));
 
+    // setup CBL
+    CBL_end = CBL_start + CBL_SIZE;
+    CBL = CBL_start;
+
     // get the BARs
     eth.CSR_IO_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_IO_BAR) & 0xFFF0;
     // eth.CSR_MM_BA = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, ETH_PCI_MM_BAR);
-
-    // set command locations up
-    eth.next_cmd = CBL;
-    eth.last_cmd = NULL;
 
     // set the device as a PCI master
     uint32_t cmd = __pci_read32(eth_pci.bus, eth_pci.slot, eth_pci.function, PCI_CMD_REG_OFFSET);
@@ -100,14 +113,12 @@ void __eth_init(void) {
     __eth_disable_int();
 
     // install the ISR on the correct vector number from the PCI config register
-    // __install_isr(eth_pci.int_line, &__eth_isr);
-    __install_isr(43, &__eth_isr); // magic vector number
+    // PIC interrupt line given by int_line from PCI, add base offset vector number of PIC to it (0x20)
+    __install_isr(eth_pci.int_line + 0x20, &__eth_isr); // magic vector number
 
     // use linear addressing
     __eth_load_CU_base(0x0);
-    __cio_printf("stat: %04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD));
     __eth_load_RU_base(0x0);
-    __cio_printf("stat: %04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD));
 
     // TODO
     // send config command

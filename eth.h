@@ -52,8 +52,6 @@
 typedef struct {
     uint32_t CSR_MM_BA; // memory mapped base address
     uint32_t CSR_IO_BA; // i/o address space base address (only one of these is necessary)
-    uint8_t* next_cmd; // pointer to next free command
-    uint8_t* last_cmd;
 } eth_dev_t;
 
 // init the ethernet module
@@ -66,5 +64,6 @@ void __eth_enable_int(void);
 void __eth_load_CU_base(uint32_t base_addr);
 void __eth_load_RU_base(uint32_t base_addr);
 void __eth_CU_start(uint8_t* CBL_Start);
+void __eth_loadaddr(uint32_t addr);
 
 #endif

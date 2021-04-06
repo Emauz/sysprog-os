@@ -141,6 +141,7 @@ void _init( void ) {
     // __pci_test();
     __eth_init();
     // __eth_nop();
+    __eth_loadaddr(0xF0F0F0F0);
 
     __cio_puts( "\nModule initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );

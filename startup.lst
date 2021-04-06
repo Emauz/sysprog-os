@@ -1,0 +1,127 @@
+GAS LISTING startup.s 			page 1
+
+
+   1              	# 1 "startup.S"
+   1              	/*
+   0              	
+   0              	
+   2              	** SCCS ID:	@(#)startup.S	2.1	12/8/19
+   3              	**
+   4              	** File:	startup.S
+   5              	**
+   6              	** Author:	Jon Coles
+   7              	**
+   8              	** Contributor:	Warren R. Carithers, K. Reek
+   9              	**
+  10              	** Description:	SP startup code.
+  11              	**
+  12              	** This code prepares the various registers for execution of
+  13              	** the program.  It sets up all the segment registers and the
+  14              	** runtime stack.  By the time this code is running, we're in
+  15              	** protected mode already.
+  16              	**
+  17              	** This code is intended to be assembled with as, not as86.
+  18              	*/
+  19              		.arch	i386
+  20              	
+  21              	#include "bootstrap.h"
+   1              	/*
+  22              	
+  23              	/*
+  24              	** Configuration options - define in Makefile
+  25              	**
+  26              	**	CLEAR_BSS_SEGMENT	include code to clear all BSS space
+  27              	**	SP_OS_CONFIG		enable SP OS-specific startup variations
+  28              	*/
+  29              	
+  30              	/*
+  31              	** A symbol for locating the beginning of the code.
+  32              	*/
+  33              		.globl begtext
+  34              	
+  35              		.text
+  36              	begtext:
+  37              	
+  38              	/*
+  39              	** The entry point.
+  40              	*/
+  41              		.globl	_start
+  42              	
+  43              	_start:
+  44 0000 FA       		cli			/* seems to be reset on entry to p. mode */
+  45 0001 B000     		movb	$0x00, %al	/* re-enable NMIs (bootstrap */
+  46 0003 E670     		outb	$0x70		/*   turned them off) */
+  47              	
+  48              	/*
+  49              	** Set the data and stack segment registers (code segment register
+  50              	** was set by the long jump that switched us into protected mode).
+  51              	*/
+  52 0005 31C0     		xorl	%eax, %eax	/* clear EAX */
+  53 0007 66B81800 		movw	$GDT_DATA, %ax	/* GDT entry #3 - data segment */
+GAS LISTING startup.s 			page 2
+
+
+  54 000b 8ED8     		movw	%ax, %ds	/* for all four data segment registers */
+  55 000d 8EC0     		movw	%ax, %es
+  56 000f 8EE0     		movw	%ax, %fs
+  57 0011 8EE8     		movw	%ax, %gs
+  58              	
+  59 0013 66B82000 		movw	$GDT_STACK, %ax	/* entry #4 is the stack segment */
+  60 0017 8ED0     		movw	%ax, %ss
+  61              	
+  62 0019 BD000001 		movl	$TARGET_STACK, %ebp	/* set up the system frame pointer */
+  62      00
+  63 001e 89EC     		movl	%ebp, %esp	/* and stack pointer */
+  64              	
+  65              	#ifdef CLEAR_BSS
+  66              	/*
+  67              	** Zero the BSS segment
+  68              	**
+  69              	** These symbols are defined automatically by the linker.
+  70              	*/
+  71              		.globl	__bss_start,_end
+  72              	
+  73 0020 BF000000 		movl	$__bss_start,%edi
+  73      00
+  74              	clearbss:
+  75 0025 C7070000 		movl	$0,(%edi)
+  75      0000
+  76 002b 83C704   		addl	$4,%edi
+  77 002e 81FF0000 		cmpl	$_end,%edi
+  77      0000
+  78 0034 72EF     		jb	clearbss
+  79              	
+  80              	#endif
+  81              	
+  82              	#ifdef SP_OS_CONFIG
+  83              	/*
+  84              	**
+  85              	** Configuration for the baseline OS.
+  86              	**
+  87              	** Initialize devices
+  88              	*/
+  89 0036 E8FCFFFF 		call	_init		// initialize the OS
+  89      FF
+  90              	
+  91              	/*
+  92              	** Restore the first user process context
+  93              	**
+  94              	** WARNING:  must set things up so that the stack looks like
+  95              	** we're returning to the context restore routine after handling
+  96              	** an interrupt!!!
+  97              	*/
+  98 003b E9FCFFFF 		jmp	__isr_restore   // defined in isr_stubs.S
+  98      FF
+GAS LISTING startup.s 			page 3
+
+
+DEFINED SYMBOLS
+           startup.S:36     .text:0000000000000000 begtext
+           startup.S:43     .text:0000000000000000 _start
+           startup.S:74     .text:0000000000000025 clearbss
+
+UNDEFINED SYMBOLS
+__bss_start
+_end
+_init
+__isr_restore
