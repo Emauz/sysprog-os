@@ -11,6 +11,7 @@
 // return values
 #define ETH_SUCCESS 0
 #define ETH_ERR -1 // general error, can make more specific
+#define ETH_TOO_LARGE -2
 
 // PCI vendor ID and device ID
 #define ETH_VENDOR_ID 0x8086
@@ -49,7 +50,6 @@
 #define ETH_LINK_ADDR_OFFSET  0x04
 #define ETH_ACT_CMD_TX        0b100
 
-
 typedef struct {
     uint32_t CSR_MM_BA; // memory mapped base address
     uint32_t CSR_IO_BA; // i/o address space base address (only one of these is necessary)
@@ -57,7 +57,7 @@ typedef struct {
 
 // init the ethernet module
 void __eth_init(void);
-void __eth_nop(void);
+// void __eth_nop(void);
 
 // SCB commands
 void __eth_disable_int(void);
@@ -65,6 +65,25 @@ void __eth_enable_int(void);
 void __eth_load_CU_base(uint32_t base_addr);
 void __eth_load_RU_base(uint32_t base_addr);
 void __eth_CU_start(uint8_t* CBL_Start);
-void __eth_loadaddr(uint32_t addr);
+
+
+// ~high-level commands~ //
+// return ETH_SUCCESS or other value
+
+// load an internal address into the NIC
+// pass an ID to associate the generated command with
+uint8_t __eth_loadaddr(uint32_t addr, uint16_t);
+
+// transmit data of length len
+// associate 'id' with the command
+uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id);
+
+// receive data of max length len
+// associate 'id' with the command
+uint8_t __eth_rx(uint8_t* data, uint16_t len, uint16_t id);
+
+// set a function to call when a command is complete
+// passes back the id associated with the id and a status of the command
+void __eth_setcallback(void (*callback)(uint16_t id, uint16_t status));
 
 #endif

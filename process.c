@@ -203,6 +203,9 @@ void _pcb_cleanup( pcb_t *pcb ) {
 
     // release the PCB
     _pcb_free( pcb );
+
+    // decrement active procs
+    _active_procs--;
 }
 
 /*
