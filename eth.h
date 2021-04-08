@@ -43,9 +43,12 @@
 #define ETH_RU_RESUME    0b010
 #define ETH_LOAD_RU_BASE 0b110
 
+// CSR masks
+#define ETH_CMD_SWI_MASK (0x1 << 10)
+
 // action commands
-#define ETH_ACT_CMD_EL_MASK   0b1 << 15
-#define ETH_ACT_CMD_I_MASK    0b1 << 13
+#define ETH_ACT_CMD_EL_MASK   (0b1 << 15)
+#define ETH_ACT_CMD_I_MASK    (0b1 << 13)
 #define ETH_ACT_CMD_LOAD_ADDR 0b1
 #define ETH_LINK_ADDR_OFFSET  0x04
 #define ETH_ACT_CMD_TX        0b100

@@ -64,6 +64,8 @@ uint8_t* CBL;
 // holds nodes of type cmd_node_t
 queue_t _cu_waiting;
 
+// software interrupt occured
+uint8_t _swi = 0;
 
 // function to be called when a command is complete, returns the id for whatever command finished
 void (*__eth_callback)(uint16_t id, uint16_t status) = NULL;
@@ -211,16 +213,21 @@ void __eth_init(void) {
     // PIC interrupt line given by int_line from PCI, add base offset vector number of PIC to it (0x20)
     __install_isr(eth_pci.int_line + 0x20, &__eth_isr); // magic vector number
 
+    // re-enable interrupts
+    __eth_enable_int();
+
     // use linear addressing
+    _swi = 0;
     __eth_load_CU_base(0x0);
+    // while(!_swi) {};
+
+    _swi = 0;
     __eth_load_RU_base(0x0);
+    // while(!_swi) {};
 
     // TODO send config command?
 
     // TODO execute RU_START
-
-    // re-enable interrupts
-    __eth_enable_int();
 
     // TODO wait until the CU and RU go into idle mode
     // just to make sure we're good to execute commands in the future
@@ -250,7 +257,7 @@ void __eth_load_CU_base(uint32_t base_addr) {
     }
 
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
-    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_CU_BASE);
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_CU_BASE | ETH_CMD_SWI_MASK);
 }
 
 // load receive unit base
@@ -263,7 +270,7 @@ void __eth_load_RU_base(uint32_t base_addr) {
     }
 
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
-    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_RU_BASE);
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_RU_BASE | ETH_CMD_SWI_MASK);
 }
 
 // command unit start
