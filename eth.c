@@ -45,27 +45,27 @@ typedef struct {
 
 // associates an actual command with an id to be returned
 typedef struct {
-    uint8_t* data; // pointer to command on the CBL
-    uint16_t id;   // id of the cmd node (should be set to process PID)
+    uint16_t CBL_index; // index to command in the CBL
+    uint16_t CBL_size;      // size of the action command on the CBL
+    uint16_t cmd_index; // index into 'commands' block
+    uint16_t id;        // id of the cmd node (should be set to process PID)
 } cmd_node_t;
 
 // statically allocated block of commands to use
 cmd_node_t commands[MAX_COMMANDS];
-cmd_node_t* cmd_start;
-cmd_node_t* cmd_end;
+uint8_t free_commands[MAX_COMMANDS]; // bit map of open indices in 'commands'
 cmd_node_t* current_cmd;
 
 // statically allocated space for action commands to reside
-uint8_t CBL_start[CBL_SIZE];
-uint8_t* CBL_end;
+uint8_t CBL_data[CBL_SIZE];
 uint8_t* CBL;
+int CBL_start; // index into CBL
+int CBL_end; // index into CBL
 
 // commands waiting to execute
 // holds nodes of type cmd_node_t
 queue_t _cu_waiting;
 
-// software interrupt occured
-uint8_t _swi = 0;
 
 // function to be called when a command is complete, returns the id for whatever command finished
 void (*__eth_callback)(uint16_t id, uint16_t status) = NULL;
@@ -74,22 +74,64 @@ void __eth_setcallback(void (*callback)(uint16_t id, uint16_t status)) {
     __eth_callback = callback;
 }
 
+// request a slab of size 'len' of the CBL to place an action command
+// returns the pointer to a CBL entry or NULL on no memory available
+static inline uint8_t* __eth_allocate_CBL(uint16_t len) {
+    if((CBL_end + len) > CBL_SIZE) {
+        CBL_end = 0;
+        // wrap around
+        if(CBL_end == CBL_start) {
+            return NULL;
+        }
+    }
+
+    if(CBL_end >= CBL_start || CBL_end + len < CBL_start) {
+        CBL_end += len;
+        return &CBL[CBL_end];
+    }
+    return NULL;
+}
+
+// allocate a command node
+static inline cmd_node_t* __eth_allocate_CMD(void) {
+    for(int i = 0; i < MAX_COMMANDS; i++) {
+        if(free_commands[i] == 0) { // we found a free index!
+            free_commands[i] = 1;
+            commands[i].cmd_index = i;
+            return &commands[i];
+        }
+    }
+    return NULL;
+}
+
+
 uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
+    // allocate space on the CBL
+    AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)__eth_allocate_CBL(sizeof(AddrSetupActionCmd_t));
+    if(ptr == NULL) {
+        return ETH_NO_MEM;
+    }
+
     // setup cmd
-    AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)CBL; // TODO grab the next free space on the CBL
     ptr->cmd_word = ETH_ACT_CMD_LOAD_ADDR;
     ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
     ptr->cmd_word |= ETH_ACT_CMD_I_MASK;
     ptr->IA_addr = addr;
 
-    // TODO create a command node for it
+    // create a command node
+    cmd_node_t* cmd = __eth_allocate_CMD();
+    if(cmd == NULL) {
+        return ETH_NO_MEM;
+    }
+    cmd->CBL_index = CBL_end - sizeof(AddrSetupActionCmd_t);
+    cmd->CBL_size = sizeof(AddrSetupActionCmd_t);
 
     if(CU_BUSY) {
-        // queue it up
+        _que_enque(_cu_waiting, cmd, NULL);
     } else {
         // start it immediately
-        // TODO set current_cmd
-        __eth_CU_start(CBL);
+        current_cmd = cmd;
+        __eth_CU_start((uint8_t*)ptr);
     }
 
     return ETH_SUCCESS;
@@ -103,28 +145,42 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
         return ETH_TOO_LARGE;
     }
 
+    // allocate space on the CBL
+    uint8_t* ptr = __eth_allocate_CBL(sizeof(TxActionCmd_t) + len);
+    if(ptr == NULL) {
+        __cio_printf("CBL alloc fail\n");
+        return ETH_NO_MEM;
+    }
+
     // setup cmd
-    TxActionCmd_t* ptr = (TxActionCmd_t*)CBL; // TODO get the correct space on the CBL
-    ptr->cmd_word = ETH_ACT_CMD_TX;
-    ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
-    ptr->cmd_word |= ETH_ACT_CMD_I_MASK;
-    ptr->tbd_array_addr = 0x0; // NULL pointer (in simple mode)
-    ptr->byte_cnt = len;
-    ptr->tx_threshold = 1; // 1 byte in the FIFO triggers a send
-    ptr->TBD_number = 0x0; // doesn't matter in simple mode, zero anyways just in case
+    TxActionCmd_t* TxCB = (TxActionCmd_t*)ptr; // TODO get the correct space on the CBL
+    TxCB->cmd_word = ETH_ACT_CMD_TX;
+    TxCB->cmd_word |= ETH_ACT_CMD_EL_MASK;
+    TxCB->cmd_word |= ETH_ACT_CMD_I_MASK;
+    TxCB->tbd_array_addr = 0x0; // NULL pointer (in simple mode)
+    TxCB->byte_cnt = len;
+    TxCB->tx_threshold = 1; // 1 byte in the FIFO triggers a send
+    TxCB->TBD_number = 0x0; // doesn't matter in simple mode, zero anyways just in case
 
     // in simplified mode, the data goes directly after the command block
-    __memcpy(ptr + 1, data, len);
+    __memcpy(TxCB + 1, data, len);
 
-    // TODO create a command node for it
-
+    // create a command node
+    cmd_node_t* cmd = __eth_allocate_CMD();
+    if(cmd == NULL) {
+        __cio_printf("CMD alloc fail\n");
+        return ETH_NO_MEM;
+    }
+    cmd->CBL_index = CBL_end - sizeof(TxActionCmd_t) - len;
+    cmd->CBL_size = sizeof(TxActionCmd_t) + len;
 
     if(CU_BUSY) {
-        // TODO queue it up
+        __cio_printf("CU BUSY, queue instead\n");
+        _que_enque(_cu_waiting, cmd, NULL);
     } else {
-        // start the CU executing
-        // TODO set current_cmd
-        __eth_CU_start(CBL);
+        // start it immediately
+        current_cmd = cmd;
+        __eth_CU_start(ptr);
     }
 
     return ETH_SUCCESS;
@@ -132,6 +188,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
 
 
 static void __eth_isr(int vector, int code) {
+    // TODO check for certain kinds of interrupts
 
     #ifdef ETH_DEBUG
     __cio_printf("%04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1));
@@ -141,18 +198,22 @@ static void __eth_isr(int vector, int code) {
     // ack all interrupts
     __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
 
-    // TODO check for certain kinds of interrupts
-
     // call the callback if it's set
     if(__eth_callback != NULL) {
         // TODO error checking
         __eth_callback(current_cmd->id, ETH_SUCCESS);
     }
 
+    // fix the CBL (only for transmit and loadaddr)
+    CBL_start = (CBL_start + current_cmd->CBL_size) % CBL_SIZE;
+
+    // free the just executed command node (zero the index)
+    free_commands[current_cmd->cmd_index] = 0;
+
     // if we have another command to run we should do it
     if(_que_length(_cu_waiting)) {
         current_cmd = _que_deque(_cu_waiting);
-        __eth_CU_start(current_cmd->data);
+        __eth_CU_start(&CBL[current_cmd->CBL_index]);
     } else {
         // set the CU to not busy
         CU_BUSY = 0;
@@ -164,19 +225,19 @@ static void __eth_isr(int vector, int code) {
 
 
 void __eth_init(void) {
-
     __cio_puts(" Eth:");
 
     // find the device on the PCI bus
     assert(0 == __pci_find_device(&eth_pci, ETH_VENDOR_ID, ETH_DEVICE_ID));
 
     // setup CBL
-    CBL_end = CBL_start + CBL_SIZE;
-    CBL = CBL_start;
+    CBL = CBL_data;
+    CBL += ((uint32_t)CBL) % 2; // make sure CBL is word alignmed
+    CBL_start = 0;
+    CBL_end = 0;
 
     // setup command space
-    cmd_start = commands;
-    cmd_end = commands + MAX_COMMANDS;
+    __memset(free_commands, MAX_COMMANDS, 0x0);
     current_cmd = NULL;
 
     // allocated the queue
@@ -213,24 +274,18 @@ void __eth_init(void) {
     // PIC interrupt line given by int_line from PCI, add base offset vector number of PIC to it (0x20)
     __install_isr(eth_pci.int_line + 0x20, &__eth_isr); // magic vector number
 
-    // re-enable interrupts
-    __eth_enable_int();
 
     // use linear addressing
-    _swi = 0;
+    // we can assume CU and RU are idle since we just bonked the card
     __eth_load_CU_base(0x0);
-    // while(!_swi) {};
-
-    _swi = 0;
     __eth_load_RU_base(0x0);
-    // while(!_swi) {};
 
     // TODO send config command?
 
-    // TODO execute RU_START
+    // re-enable interrupts
+    __eth_enable_int();
 
-    // TODO wait until the CU and RU go into idle mode
-    // just to make sure we're good to execute commands in the future
+    // TODO execute RU_START
 
     __cio_puts(" done");
 }
@@ -257,7 +312,7 @@ void __eth_load_CU_base(uint32_t base_addr) {
     }
 
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
-    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_CU_BASE | ETH_CMD_SWI_MASK);
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_CU_BASE);
 }
 
 // load receive unit base
@@ -270,7 +325,7 @@ void __eth_load_RU_base(uint32_t base_addr) {
     }
 
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, base_addr);
-    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_RU_BASE | ETH_CMD_SWI_MASK);
+    __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_LOAD_RU_BASE);
 }
 
 // command unit start

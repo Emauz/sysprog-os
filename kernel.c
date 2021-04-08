@@ -143,6 +143,7 @@ void _init( void ) {
     // __eth_nop();
     // __eth_loadaddr(0xF0F0F0F0, 0);
     __eth_tx((uint8_t*)"test", 4, 0);
+    // __eth_tx((uint8_t*)"test2", 5, 0);
 
     __cio_puts( "\nModule initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );

@@ -10,8 +10,9 @@
 
 // return values
 #define ETH_SUCCESS 0
-#define ETH_ERR -1 // general error, can make more specific
-#define ETH_TOO_LARGE -2
+#define ETH_ERR 1 // general error, can make more specific
+#define ETH_TOO_LARGE 2
+#define ETH_NO_MEM 3
 
 // PCI vendor ID and device ID
 #define ETH_VENDOR_ID 0x8086
@@ -44,7 +45,7 @@
 #define ETH_LOAD_RU_BASE 0b110
 
 // CSR masks
-#define ETH_CMD_SWI_MASK (0x1 << 10)
+#define ETH_CMD_SWI_MASK (0x1 << 9)
 
 // action commands
 #define ETH_ACT_CMD_EL_MASK   (0b1 << 15)
@@ -75,7 +76,7 @@ void __eth_CU_start(uint8_t* CBL_Start);
 
 // load an internal address into the NIC
 // pass an ID to associate the generated command with
-uint8_t __eth_loadaddr(uint32_t addr, uint16_t);
+uint8_t __eth_loadaddr(uint32_t addr, uint16_t id);
 
 // transmit data of length len
 // associate 'id' with the command
