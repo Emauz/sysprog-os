@@ -87,7 +87,7 @@ static inline uint8_t* __eth_allocate_CBL(uint16_t len) {
 
     if(CBL_end >= CBL_start || CBL_end + len < CBL_start) {
         CBL_end += len;
-        return &CBL[CBL_end];
+        return &CBL[CBL_end - len]; // TODO 2 byte align this?
     }
     return NULL;
 }
@@ -127,9 +127,10 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
     cmd->CBL_size = sizeof(AddrSetupActionCmd_t);
 
     if(CU_BUSY) {
-        _que_enque(_cu_waiting, cmd, NULL);
+        _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
     } else {
         // start it immediately
+        CU_BUSY = 1;
         current_cmd = cmd;
         __eth_CU_start((uint8_t*)ptr);
     }
@@ -151,6 +152,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
         __cio_printf("CBL alloc fail\n");
         return ETH_NO_MEM;
     }
+    __cio_printf("CBL: %08x", (uint32_t)ptr);
 
     // setup cmd
     TxActionCmd_t* TxCB = (TxActionCmd_t*)ptr; // TODO get the correct space on the CBL
@@ -174,11 +176,17 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     cmd->CBL_index = CBL_end - sizeof(TxActionCmd_t) - len;
     cmd->CBL_size = sizeof(TxActionCmd_t) + len;
 
+    __cio_printf("CMD: %08x", (uint32_t)cmd);
+
+    __cio_printf("tx happening\n");
+
     if(CU_BUSY) {
         __cio_printf("CU BUSY, queue instead\n");
-        _que_enque(_cu_waiting, cmd, NULL);
+        _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
     } else {
+        __cio_printf("tx immediate\n");
         // start it immediately
+        CU_BUSY = 1;
         current_cmd = cmd;
         __eth_CU_start(ptr);
     }
@@ -212,9 +220,12 @@ static void __eth_isr(int vector, int code) {
 
     // if we have another command to run we should do it
     if(_que_length(_cu_waiting)) {
+        __cio_printf("ISR dequeue\n");
         current_cmd = _que_deque(_cu_waiting);
         __eth_CU_start(&CBL[current_cmd->CBL_index]);
     } else {
+        __cio_printf("nothing to dequeue\n");
+        current_cmd = NULL;
         // set the CU to not busy
         CU_BUSY = 0;
     }
