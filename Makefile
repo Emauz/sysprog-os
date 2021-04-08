@@ -227,10 +227,11 @@ prog.dis: prog.o
 
 
 # qemu emulation
-QEMU = /home/course/csci352/bin/qemu-system-i386
+QEMU = /usr/bin/qemu-system-i386
 QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw
 QEMUBASICNET = -device i82557b
-QEMUNETCAP = -net nic,model=i82557b -net dump,file=net.pcap
+#QEMUNETCAP = -net nic,model=i82557b -net dump,file=net.pcap -net user
+QEMUNETCAP = -netdev user,id=u1 -device i82557b,netdev=u1 -object filter-dump,id=f1,netdev=u1,file=net.pcap
 
 qemu: usb.image
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) $(QEMUBASICNET)
