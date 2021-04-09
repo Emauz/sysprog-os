@@ -22,7 +22,7 @@ eth_dev_t eth;
 
 uint8_t CU_BUSY = 0; // CU initializes to idle
 
-#define CBL_SIZE 2048
+#define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
 
 typedef struct {
@@ -86,6 +86,7 @@ static inline uint8_t* __eth_allocate_CBL(uint16_t len) {
     }
 
     if(CBL_end >= CBL_start || CBL_end + len < CBL_start) {
+        CBL_end += (CBL_end % 2); // word align the CBL slab
         CBL_end += len;
         return &CBL[CBL_end - len]; // TODO 2 byte align this?
     }
@@ -121,8 +122,11 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
     // create a command node
     cmd_node_t* cmd = __eth_allocate_CMD();
     if(cmd == NULL) {
+        free_commands[cmd->cmd_index] = 0; // free the command node
+        CBL_end -= sizeof(AddrSetupActionCmd_t); // unallocate CBL space
         return ETH_NO_MEM;
     }
+
     cmd->CBL_index = CBL_end - sizeof(AddrSetupActionCmd_t);
     cmd->CBL_size = sizeof(AddrSetupActionCmd_t);
 
@@ -155,7 +159,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     __cio_printf("CBL: %08x", (uint32_t)ptr);
 
     // setup cmd
-    TxActionCmd_t* TxCB = (TxActionCmd_t*)ptr; // TODO get the correct space on the CBL
+    TxActionCmd_t* TxCB = (TxActionCmd_t*)ptr;
     TxCB->cmd_word = ETH_ACT_CMD_TX;
     TxCB->cmd_word |= ETH_ACT_CMD_EL_MASK;
     TxCB->cmd_word |= ETH_ACT_CMD_I_MASK;
@@ -171,8 +175,12 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     cmd_node_t* cmd = __eth_allocate_CMD();
     if(cmd == NULL) {
         __cio_printf("CMD alloc fail\n");
+
+        free_commands[cmd->cmd_index] = 0; // free the command node
+        CBL_end -= (sizeof(TxActionCmd_t) + len); // unallocate CBL space
         return ETH_NO_MEM;
     }
+
     cmd->CBL_index = CBL_end - sizeof(TxActionCmd_t) - len;
     cmd->CBL_size = sizeof(TxActionCmd_t) + len;
 
@@ -214,6 +222,8 @@ static void __eth_isr(int vector, int code) {
 
     // fix the CBL (only for transmit and loadaddr)
     CBL_start = (CBL_start + current_cmd->CBL_size) % CBL_SIZE;
+    // move CBL start to a word (2 byte) boundary
+    CBL_start += (CBL_start % 2); // this guarantees zero free bytes b/w CBL start and end
 
     // free the just executed command node (zero the index)
     free_commands[current_cmd->cmd_index] = 0;
