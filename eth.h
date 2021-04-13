@@ -94,7 +94,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id);
 
 // transmit data of length len
 // associate 'id' with the command
-uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t id);
+uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id);
 
 // receive data of max length len
 // associate 'id' with the command
@@ -102,6 +102,6 @@ uint8_t __eth_rx(uint8_t* data, uint16_t len, uint16_t id);
 
 // set a function to call when a command is complete
 // passes back the id associated with the id and a status of the command
-void __eth_setcallback(void (*callback)(uint16_t id, uint16_t status));
+void __eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status));
 
 #endif

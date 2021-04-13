@@ -78,10 +78,10 @@ RFD_t* RFA;
 
 
 // function to be called when a command is complete, returns the id for whatever command finished
-void (*__eth_callback)(uint16_t id, uint16_t status) = NULL;
+void (*__eth_cmd_callback)(uint16_t id, uint16_t status) = NULL;
 
-void __eth_setcallback(void (*callback)(uint16_t id, uint16_t status)) {
-    __eth_callback = callback;
+void __eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status)) {
+    __eth_cmd_callback = callback;
 }
 
 // request a slab of size 'len' of the CBL to place an action command
@@ -139,6 +139,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
 
     cmd->CBL_index = CBL_end - sizeof(AddrSetupActionCmd_t);
     cmd->CBL_size = sizeof(AddrSetupActionCmd_t);
+    cmd->id = id;
 
     if(CU_BUSY) {
         _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
@@ -155,7 +156,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
 // start a transmit command in simple mode
 // len must be 14 bits max
 // Includes PID of transmitting process (to ensure queue synchronization)
-uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
+uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     // check len is only 14 bits
     if((len >> 14) != 0) {
         return ETH_TOO_LARGE;
@@ -194,6 +195,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
 
     cmd->CBL_index = CBL_end - sizeof(TxActionCmd_t) - len;
     cmd->CBL_size = sizeof(TxActionCmd_t) + len;
+    cmd->id = id;
 
     __cio_printf("CMD: %08x", (uint32_t)cmd);
 
@@ -229,9 +231,9 @@ static void __eth_isr(int vector, int code) {
     __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
 
     // call the callback if it's set
-    if(__eth_callback != NULL) {
+    if(__eth_cmd_callback != NULL) {
         // TODO error checking
-        __eth_callback(current_cmd->id, ETH_SUCCESS);
+        __eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
     }
 
     // fix the CBL (only for transmit and loadaddr)
