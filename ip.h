@@ -10,12 +10,19 @@
 
 // return values
 #define IP_SUCCESS 0
-#define IP_ERR 1 // general error, can make more specific (see eth.h for reference)
-#define PTR_tOO_SMALL
+#define IP_ERR 1        // general error, can make more specific (see eth.h for reference)
+#define IP_TOO_LARGE 2
+#define IP_NO_MEM 3
 
 // header lengths
 #define IPV4_HDR_LEN 20
 #define IPV6_HDR_LEN 288    // unused
+
+// header values
+#define IPV4_VER_IHL    0x45        // version 4, header length 20
+#define IPV4_FLAGS_OFFSET   0x4000  // do not fragment bit set, fragment = 0x00
+#define TTL_DEFAULT     0x40        // 64 in decimal
+#define UDP_PROTOCOL    0x11        // 17 in decimal
 
 // IPv4 structure reference: https://www.tutorialspoint.com/ipv4/ipv4_packet_structure.htm
 typedef struct {
@@ -29,14 +36,15 @@ typedef struct {
     uint16_t checksum;
     uint32_t src_addr;
     uint32_t dest_addr;
-} ipv4_hdr;
+} ipv4hdr_t;
 
 
 // adds an IPv4 header to an ethernet frame.
-// ptr:     the pointer to add the header
-// offset:  how many bytes to shift the ipv4 header (where to start writing)
-// len:     total length of the pointer
-// pid:     unused, process id
-uint8_t __ipv4_add_header(uint8_t* ptr, uint8_t offset, uint16_t len, pid_t pid);
+// data:    payload. This should be a complete transport layer packet (i.e. UPD packet)
+// len:     length of the total packet
+// pid:     for syscall items
+uint8_t* __ip_add_addr(uint8_t* data, uint16_t len, pid_t pid);
+
+
 
 #endif
