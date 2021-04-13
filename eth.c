@@ -35,9 +35,13 @@ uint8_t CU_BUSY = 0; // CU initializes to idle
 #define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
 
+// max size of an ethernet frame
+#define ETH_FRAME_SIZE 1518
+
 // max ethernet frame size is 1518 bytes
-// pick the next power of 2 just for ease
-#define RFA_SIZE 16384
+// pick the next power of 2 just for convenience
+#define RFA_SIZE 2048
+
 
 typedef struct {
     uint16_t status_word;
@@ -60,11 +64,11 @@ typedef struct {
 typedef struct {
     uint16_t status_word;
     uint16_t cmd_word;
-    uint32_t link_add;
+    uint32_t link_addr;
     uint32_t _reserved;
     uint16_t count_byte;
     uint16_t size_byte;
-    uint8_t frame[1518]; // ethernet frame
+    uint8_t frame[ETH_FRAME_SIZE]; // ethernet frame
 } RFD_t;
 
 // statically allocated block of commands to use
@@ -92,6 +96,34 @@ void (*__eth_cmd_callback)(uint16_t id, uint16_t status) = NULL;
 
 void __eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status)) {
     __eth_cmd_callback = callback;
+}
+
+// function to be called when a frame is received
+void (*__eth_rx_callback)(uint16_t status,  const uint8_t* data, uint16_t count);
+
+void __eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* data, uint16_t count)) {
+    __eth_rx_callback = callback;
+}
+
+// setup a receive frame descriptor
+// sets it as the last RFD in the RFA
+// uses simple memory mode
+static inline void __eth_setup_RFD(RFD_t* RFD) {
+    // setup the command word
+    RFD->cmd_word = 0;
+    RFD->cmd_word |= ETH_RFD_CMD_EL; // set the EL bit to trigger an RNR interrupt
+    RFD->cmd_word |= ETH_RFD_CMD_SF; // set the SF bit to say we're in simplfified mode
+
+    // zero the link address
+    RFD->link_addr = 0;
+
+    // zero the EOF, F, and COUNT bits
+    RFD->count_byte = 0;
+
+    // set the size byte
+    // make sure size is such that bits 6 and 7 are 0
+    RFD->size_byte = ETH_FRAME_SIZE;
+    RFD->size_byte &= 0b00111111;
 }
 
 // request a slab of size 'len' of the CBL to place an action command
@@ -175,10 +207,12 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     // allocate space on the CBL
     uint8_t* ptr = __eth_allocate_CBL(sizeof(TxActionCmd_t) + len);
     if(ptr == NULL) {
+        #ifdef ETH_DEBUG
         __cio_printf("CBL alloc fail\n");
+        #endif
+
         return ETH_NO_MEM;
     }
-    __cio_printf("CBL: %08x", (uint32_t)ptr);
 
     // setup cmd
     TxActionCmd_t* TxCB = (TxActionCmd_t*)ptr;
@@ -196,7 +230,9 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     // create a command node
     cmd_node_t* cmd = __eth_allocate_CMD();
     if(cmd == NULL) {
+        #ifdef ETH_DEBUG
         __cio_printf("CMD alloc fail\n");
+        #endif
 
         free_commands[cmd->cmd_index] = 0; // free the command node
         CBL_end -= (sizeof(TxActionCmd_t) + len); // unallocate CBL space
@@ -207,15 +243,9 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     cmd->CBL_size = sizeof(TxActionCmd_t) + len;
     cmd->id = id;
 
-    __cio_printf("CMD: %08x", (uint32_t)cmd);
-
-    __cio_printf("tx happening\n");
-
     if(CU_BUSY) {
-        __cio_printf("CU BUSY, queue instead\n");
         _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
     } else {
-        __cio_printf("tx immediate\n");
         // start it immediately
         CU_BUSY = 1;
         current_cmd = cmd;
@@ -279,11 +309,24 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_RNR_MASK) { // RU no resources
+        #ifdef ETH_DEBUG
+        __cio_printf("RU RECEIVED\n");
+        #endif
+
         // all receives will generate RU out of resources (I think) since the EL bit is set
         // need to check status in RFD (page 101)
 
         // call the rx callback function with a pointer to the data section
         // of the last (and only) RFD in the RFA
+
+        // TODO check status instead of return ETH_SUCCESS
+        if(__eth_rx_callback != NULL) {
+            uint16_t actual_count = (RFA->count_byte & 0b00111111);
+            __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
+        }
+
+        // reset the RFD in the RFA
+        __eth_setup_RFD(RFA);
     }
 
     if(status & ETH_MDI_MASK) { // MDI interrupt (media data interface)

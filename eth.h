@@ -59,6 +59,10 @@
 #define ETH_FR_MASK  (1 << 6)
 #define ETH_CX_TNO_MASK (1 << 7)
 
+// RFD command word bits
+#define ETH_RFD_CMD_EL (1 << 31)
+#define ETH_RFD_CMD_SF (1 << 19)
+
 
 typedef struct {
     uint32_t CSR_MM_BA; // memory mapped base address
@@ -108,5 +112,10 @@ uint8_t __eth_rx(uint8_t* data, uint16_t len, uint16_t id);
 // set a function to call when a command is complete
 // passes back the id associated with the id and a status of the command
 void __eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status));
+
+// set a function to call when a packet is received
+// passes back id, status, a pointer to the packet, and a count of how many bytes are in the packet
+// CANNOT modify the data at 'data', it needs to be copied out
+void __eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* data, uint16_t count));
 
 #endif

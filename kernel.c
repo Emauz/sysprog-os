@@ -23,6 +23,7 @@
 #include "support.h"
 #include "eth.h"
 #include "test.h"
+#include "net.h"
 
 // need init() and idle() addresses
 #include "users.h"
@@ -141,33 +142,36 @@ void _init( void ) {
     // __pci_test();
     __eth_init();
     // __eth_nop();
-    // __eth_loadaddr(0xF0F0F0F0, 0);
+
+    uint32_t addr;
+    htons("10.10.10.10", &addr);
+    __eth_loadaddr(addr, 0);
 
     __eth_tx((uint8_t*)"test", 4, 0);
-    __eth_tx((uint8_t*)"test2", 5, 0);
-    __eth_tx((uint8_t*)"test3", 5, 0);
-    __eth_tx((uint8_t*)"test4", 5, 0);
-    __eth_tx((uint8_t*)"test5", 5, 0);
-    __eth_tx((uint8_t*)"test6", 5, 0);
-    __eth_tx((uint8_t*)"test7", 5, 0);
-    __eth_tx((uint8_t*)"test8", 5, 0);
-    __eth_tx((uint8_t*)"test9", 5, 0);
-    __eth_tx((uint8_t*)"test10", 6, 0);
-    __eth_tx((uint8_t*)"test11", 6, 0);
-    __eth_tx((uint8_t*)"test12", 6, 0);
-    __eth_tx((uint8_t*)"test13", 6, 0);
-    __eth_tx((uint8_t*)"test14", 6, 0);
-    __eth_tx((uint8_t*)"test15", 6, 0);
-    __eth_tx((uint8_t*)"test16", 6, 0);
-    __eth_tx((uint8_t*)"test17", 6, 0);
-    __eth_tx((uint8_t*)"test18", 6, 0);
-    __eth_tx((uint8_t*)"test19", 6, 0);
-    __eth_tx((uint8_t*)"test20", 6, 0);
+    // __eth_tx((uint8_t*)"test2", 5, 0);
+    // __eth_tx((uint8_t*)"test3", 5, 0);
+    // __eth_tx((uint8_t*)"test4", 5, 0);
+    // __eth_tx((uint8_t*)"test5", 5, 0);
+    // __eth_tx((uint8_t*)"test6", 5, 0);
+    // __eth_tx((uint8_t*)"test7", 5, 0);
+    // __eth_tx((uint8_t*)"test8", 5, 0);
+    // __eth_tx((uint8_t*)"test9", 5, 0);
+    // __eth_tx((uint8_t*)"test10", 6, 0);
+    // __eth_tx((uint8_t*)"test11", 6, 0);
+    // __eth_tx((uint8_t*)"test12", 6, 0);
+    // __eth_tx((uint8_t*)"test13", 6, 0);
+    // __eth_tx((uint8_t*)"test14", 6, 0);
+    // __eth_tx((uint8_t*)"test15", 6, 0);
+    // __eth_tx((uint8_t*)"test16", 6, 0);
+    // __eth_tx((uint8_t*)"test17", 6, 0);
+    // __eth_tx((uint8_t*)"test18", 6, 0);
+    // __eth_tx((uint8_t*)"test19", 6, 0);
+    // __eth_tx((uint8_t*)"test20", 6, 0);
 
     // let's try and run the system out of memory
-    for(int i = 0; i < 31; i++) {
-        __eth_tx((uint8_t*)"¯\\_(ツ)_/¯", 9, 0);
-    }
+    // for(int i = 0; i < 31; i++) {
+    //     __eth_tx((uint8_t*)"¯\\_(ツ)_/¯", 9, 0);
+    // }
 
     __cio_puts( "\nModule initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );
