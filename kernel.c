@@ -143,26 +143,29 @@ void _init( void ) {
     // __eth_nop();
     // __eth_loadaddr(0xF0F0F0F0, 0);
 
-    __eth_tx((uint8_t*)"test", 4, 0);
-    __eth_tx((uint8_t*)"test2", 5, 0);
-    __eth_tx((uint8_t*)"test3", 5, 0);
-    __eth_tx((uint8_t*)"test4", 5, 0);
-    __eth_tx((uint8_t*)"test5", 5, 0);
-    __eth_tx((uint8_t*)"test6", 5, 0);
-    __eth_tx((uint8_t*)"test7", 5, 0);
-    __eth_tx((uint8_t*)"test8", 5, 0);
-    __eth_tx((uint8_t*)"test9", 5, 0);
-    __eth_tx((uint8_t*)"test10", 6, 0);
-    __eth_tx((uint8_t*)"test11", 6, 0);
-    __eth_tx((uint8_t*)"test12", 6, 0);
-    __eth_tx((uint8_t*)"test13", 6, 0);
-    __eth_tx((uint8_t*)"test14", 6, 0);
-    __eth_tx((uint8_t*)"test15", 6, 0);
-    __eth_tx((uint8_t*)"test16", 6, 0);
-    __eth_tx((uint8_t*)"test17", 6, 0);
-    __eth_tx((uint8_t*)"test18", 6, 0);
-    __eth_tx((uint8_t*)"test19", 6, 0);
-    __eth_tx((uint8_t*)"test20", 6, 0);
+    __ipv4_add_header((uint8_t*)"ip test", 24, 0);
+    __ipv4_add_header((uint8_t*)"ip test2", 25, 1);
+
+    __eth_tx((uint8_t*)"test", 4, 2);
+    __eth_tx((uint8_t*)"test2", 5, 3);
+    __eth_tx((uint8_t*)"test3", 5, 4);
+    __eth_tx((uint8_t*)"test4", 5, 5);
+    __eth_tx((uint8_t*)"test5", 5, 6);
+    __eth_tx((uint8_t*)"test6", 5, 7);
+    __eth_tx((uint8_t*)"test7", 5, 8);
+    __eth_tx((uint8_t*)"test8", 5, 9);
+    __eth_tx((uint8_t*)"test9", 5, 10);
+    __eth_tx((uint8_t*)"test10", 6, 11);
+    __eth_tx((uint8_t*)"test11", 6, 12);
+    __eth_tx((uint8_t*)"test12", 6, 13);
+    __eth_tx((uint8_t*)"test13", 6, 14);
+    __eth_tx((uint8_t*)"test14", 6, 15);
+    __eth_tx((uint8_t*)"test15", 6, 16);
+    // __eth_tx((uint8_t*)"test16", 6, 0);
+    // __eth_tx((uint8_t*)"test17", 6, 0);
+    // __eth_tx((uint8_t*)"test18", 6, 0);
+    // __eth_tx((uint8_t*)"test19", 6, 0);
+    // __eth_tx((uint8_t*)"test20", 6, 0);
 
     // let's try and run the system out of memory
     for(int i = 0; i < 31; i++) {
