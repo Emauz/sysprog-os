@@ -20,7 +20,7 @@ static inline int htons(char* str, uint32_t* addr) {
 
         scratch += (uint8_t)str[i];
         k++;
-        
+
         if(k > 3) {
             // too many digits for 8 bits
             return 0;
@@ -31,7 +31,7 @@ static inline int htons(char* str, uint32_t* addr) {
             j++;
             k = 0;
             i++;
-        } 
+        }
         i++;
     }
 

@@ -2,6 +2,16 @@
 *   file:  eth.c
 *
 *   Intel 8255x Ethernet Device Driver header
+*
+*   CU = command unit
+*   RU = receive unit
+*   CBL = command block list (used by the CU)
+*   RFA = receive frame area (used by RU)
+*   RFD = receive frame desciptor (contained by the RFA)
+*   IA = individual address
+*
+*   Written specifically for the Intel 82557 (does not include more advanced features)
+*   Memory modes for the CBL and RFA are both simple mode (not flexible)
 */
 #include "eth.h"
 #include "pci.h"
@@ -25,9 +35,13 @@ uint8_t CU_BUSY = 0; // CU initializes to idle
 #define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
 
+// max size of an ethernet frame
+#define ETH_FRAME_SIZE 1518
+
 // max ethernet frame size is 1518 bytes
-// pick the next power of 2 just for ease
-#define RFA_SIZE 16384
+// pick the next power of 2 just for convenience
+#define RFA_SIZE 2048
+
 
 typedef struct {
     uint16_t status_word;
@@ -50,11 +64,11 @@ typedef struct {
 typedef struct {
     uint16_t status_word;
     uint16_t cmd_word;
-    uint32_t link_add;
+    uint32_t link_addr;
     uint32_t _reserved;
     uint16_t count_byte;
     uint16_t size_byte;
-    uint8_t frame[1518]; // ethernet frame
+    uint8_t frame[ETH_FRAME_SIZE]; // ethernet frame
 } RFD_t;
 
 // statically allocated block of commands to use
@@ -78,10 +92,38 @@ RFD_t* RFA;
 
 
 // function to be called when a command is complete, returns the id for whatever command finished
-void (*__eth_callback)(uint16_t id, uint16_t status) = NULL;
+void (*__eth_cmd_callback)(uint16_t id, uint16_t status) = NULL;
 
-void __eth_setcallback(void (*callback)(uint16_t id, uint16_t status)) {
-    __eth_callback = callback;
+void __eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status)) {
+    __eth_cmd_callback = callback;
+}
+
+// function to be called when a frame is received
+void (*__eth_rx_callback)(uint16_t status,  const uint8_t* data, uint16_t count);
+
+void __eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* data, uint16_t count)) {
+    __eth_rx_callback = callback;
+}
+
+// setup a receive frame descriptor
+// sets it as the last RFD in the RFA
+// uses simple memory mode
+static inline void __eth_setup_RFD(RFD_t* RFD) {
+    // setup the command word
+    RFD->cmd_word = 0;
+    RFD->cmd_word |= ETH_RFD_CMD_EL; // set the EL bit to trigger an RNR interrupt
+    RFD->cmd_word |= ETH_RFD_CMD_SF; // set the SF bit to say we're in simplfified mode
+
+    // zero the link address
+    RFD->link_addr = 0;
+
+    // zero the EOF, F, and COUNT bits
+    RFD->count_byte = 0;
+
+    // set the size byte
+    // make sure size is such that bits 6 and 7 are 0
+    RFD->size_byte = ETH_FRAME_SIZE;
+    RFD->size_byte &= 0b00111111;
 }
 
 // request a slab of size 'len' of the CBL to place an action command
@@ -126,7 +168,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
     // setup cmd
     ptr->cmd_word = ETH_ACT_CMD_LOAD_ADDR;
     ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
-    ptr->cmd_word |= ETH_ACT_CMD_I_MASK;
+    // ptr->cmd_word |= ETH_ACT_CMD_I_MASK; // no longer set the I bit
     ptr->IA_addr = addr;
 
     // create a command node
@@ -139,6 +181,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
 
     cmd->CBL_index = CBL_end - sizeof(AddrSetupActionCmd_t);
     cmd->CBL_size = sizeof(AddrSetupActionCmd_t);
+    cmd->id = id;
 
     if(CU_BUSY) {
         _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
@@ -155,7 +198,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
 // start a transmit command in simple mode
 // len must be 14 bits max
 // Includes PID of transmitting process (to ensure queue synchronization)
-uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
+uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     // check len is only 14 bits
     if((len >> 14) != 0) {
         return ETH_TOO_LARGE;
@@ -164,16 +207,18 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
     // allocate space on the CBL
     uint8_t* ptr = __eth_allocate_CBL(sizeof(TxActionCmd_t) + len);
     if(ptr == NULL) {
+        #ifdef ETH_DEBUG
         __cio_printf("CBL alloc fail\n");
+        #endif
+
         return ETH_NO_MEM;
     }
-    __cio_printf("CBL: %08x", (uint32_t)ptr);
 
     // setup cmd
     TxActionCmd_t* TxCB = (TxActionCmd_t*)ptr;
     TxCB->cmd_word = ETH_ACT_CMD_TX;
     TxCB->cmd_word |= ETH_ACT_CMD_EL_MASK;
-    TxCB->cmd_word |= ETH_ACT_CMD_I_MASK;
+    // TxCB->cmd_word |= ETH_ACT_CMD_I_MASK; // no longer set the I bit
     TxCB->tbd_array_addr = 0x0; // NULL pointer (in simple mode)
     TxCB->byte_cnt = len;
     TxCB->tx_threshold = 1; // 1 byte in the FIFO triggers a send
@@ -185,7 +230,9 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
     // create a command node
     cmd_node_t* cmd = __eth_allocate_CMD();
     if(cmd == NULL) {
+        #ifdef ETH_DEBUG
         __cio_printf("CMD alloc fail\n");
+        #endif
 
         free_commands[cmd->cmd_index] = 0; // free the command node
         CBL_end -= (sizeof(TxActionCmd_t) + len); // unallocate CBL space
@@ -194,16 +241,11 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
 
     cmd->CBL_index = CBL_end - sizeof(TxActionCmd_t) - len;
     cmd->CBL_size = sizeof(TxActionCmd_t) + len;
-
-    __cio_printf("CMD: %08x", (uint32_t)cmd);
-
-    __cio_printf("tx happening\n");
+    cmd->id = id;
 
     if(CU_BUSY) {
-        __cio_printf("CU BUSY, queue instead\n");
         _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
     } else {
-        __cio_printf("tx immediate\n");
         // start it immediately
         CU_BUSY = 1;
         current_cmd = cmd;
@@ -215,45 +257,92 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
 
 
 static void __eth_isr(int vector, int code) {
-    // TODO check for certain kinds of interrupts
-
-    // all receives will generate RU out of resources (I think) since the EL bit is set
-    // need to check status in RFD (page 101)
-
     #ifdef ETH_DEBUG
-    // __cio_printf("%04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1));
-    // __cio_printf("ETH ISR\n");
+    // print the SCB status word most significant byte
+    __cio_printf("%04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1));
+    __cio_printf("ETH ISR\n");
     #endif
 
-    // ack all interrupts
+    // only care about the high byte of the status word (STAT/ACK)
+    uint8_t status = __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1);
+
+    if(status & ETH_CX_TNO_MASK) { // CX/TNO interrupt
+        // shouldn't happen if we never set the I bit
+        // we're not using the TNO functionality of the 82557
+        // ignore it and move on
+    }
+
+    if(status & ETH_FR_MASK) { // frame ready interrupt
+        // should happen and be set at the same time as RNR
+        // all receives will generate RU out of resources (I think) since the EL bit is set
+        // need to check status in RFD (page 101)
+
+        // safe to ignore this one? handled by RNR
+    }
+
+    if(status & ETH_CNA_MASK) { // CU not active interrupt
+        // should happen when tx/loadaddr (or any CU command) finishes
+
+        // call the callback if it's set
+        if(__eth_cmd_callback != NULL) {
+            // TODO error checking and set status accordingly
+            __eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
+        }
+
+        // fix the CBL (unallocate the current command block)
+        CBL_start = (CBL_start + current_cmd->CBL_size) % CBL_SIZE;
+        // move CBL start to a word (2 byte) boundary
+        CBL_start += (CBL_start % 2); // this guarantees zero free bytes b/w CBL start and end
+
+        // free the just executed command node (zero the index)
+        free_commands[current_cmd->cmd_index] = 0;
+
+        // if we have another command to run we should do it
+        if(_que_length(_cu_waiting)) {
+            current_cmd = _que_deque(_cu_waiting);
+            __eth_CU_start(&CBL[current_cmd->CBL_index]);
+        } else {
+            current_cmd = NULL;
+            // set the CU to not busy
+            CU_BUSY = 0;
+        }
+    }
+
+    if(status & ETH_RNR_MASK) { // RU no resources
+        #ifdef ETH_DEBUG
+        __cio_printf("RU RECEIVED\n");
+        #endif
+
+        // all receives will generate RU out of resources (I think) since the EL bit is set
+        // need to check status in RFD (page 101)
+
+        // call the rx callback function with a pointer to the data section
+        // of the last (and only) RFD in the RFA
+
+        // TODO check status instead of return ETH_SUCCESS
+        if(__eth_rx_callback != NULL) {
+            uint16_t actual_count = (RFA->count_byte & 0b00111111);
+            __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
+        }
+
+        // reset the RFD in the RFA
+        __eth_setup_RFD(RFA);
+    }
+
+    if(status & ETH_MDI_MASK) { // MDI interrupt (media data interface)
+        // not implemented
+        // should never happen
+    }
+
+    if(status & ETH_SWI_MASK) { // software interrupt
+        // not used anywhere
+        // should never happen
+    }
+
+    // bit 1 is reserved and bit 0 is the FCP bit which is not present on the 82557
+
+    // ack all interrupts that occured
     __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
-
-    // call the callback if it's set
-    if(__eth_callback != NULL) {
-        // TODO error checking
-        __eth_callback(current_cmd->id, ETH_SUCCESS);
-    }
-
-    // fix the CBL (only for transmit and loadaddr)
-    CBL_start = (CBL_start + current_cmd->CBL_size) % CBL_SIZE;
-    // move CBL start to a word (2 byte) boundary
-    CBL_start += (CBL_start % 2); // this guarantees zero free bytes b/w CBL start and end
-
-    // free the just executed command node (zero the index)
-    free_commands[current_cmd->cmd_index] = 0;
-
-    // if we have another command to run we should do it
-    // this is for CU complete interrupt
-    if(_que_length(_cu_waiting)) {
-        // __cio_printf("ISR dequeue\n");
-        current_cmd = _que_deque(_cu_waiting);
-        __eth_CU_start(&CBL[current_cmd->CBL_index]);
-    } else {
-        // __cio_printf("nothing to dequeue\n");
-        current_cmd = NULL;
-        // set the CU to not busy
-        CU_BUSY = 0;
-    }
 
     // acknowledge the SECONDARY PIC
     __outb(PIC_SEC_CMD_PORT, PIC_EOI);

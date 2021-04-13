@@ -1,7 +1,7 @@
 /*
-*   file:  eth.c
+*   file:  ip.c
 *
-*   Intel 8255x Ethernet Device Driver header
+*   IPv4 header
 */
 #include "eth.h"
 #include "ip.h"
