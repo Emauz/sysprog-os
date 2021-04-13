@@ -1,7 +1,7 @@
 /*
-*   file:  eth.h
+*   file:  ip.h
 *
-*   Intel 8255x Ethernet Device Driver header
+*   IPv4 header construction
 */
 #ifndef IP_H
 #define IP_H
