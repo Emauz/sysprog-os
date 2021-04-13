@@ -60,6 +60,18 @@ typedef struct {
     uint32_t CSR_IO_BA; // i/o address space base address (only one of these is necessary)
 } eth_dev_t;
 
+// action command
+typedef struct {
+    uint16_t status_word;
+    uint16_t cmd_word;
+    uint32_t link_addr;
+    uint32_t tbd_array_addr;
+    uint16_t byte_cnt;
+    uint8_t tx_threshold;
+    uint8_t TBD_number;
+} TxActionCmd_t;
+
+
 // init the ethernet module
 void __eth_init(void);
 // void __eth_nop(void);
