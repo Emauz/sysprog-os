@@ -44,15 +44,20 @@
 #define ETH_RU_RESUME    0b010
 #define ETH_LOAD_RU_BASE 0b110
 
-// CSR masks
-#define ETH_CMD_SWI_MASK (0x1 << 9)
-
 // action commands
 #define ETH_ACT_CMD_EL_MASK   (0b1 << 15)
 #define ETH_ACT_CMD_I_MASK    (0b1 << 13)
 #define ETH_ACT_CMD_LOAD_ADDR 0b1
 #define ETH_LINK_ADDR_OFFSET  0x04
 #define ETH_ACT_CMD_TX        0b100
+
+// CSR Status Word MSB interrupt masks
+#define ETH_SWI_MASK (1 << 2)
+#define ETH_MDI_MASK (1 << 3)
+#define ETH_RNR_MASK (1 << 4)
+#define ETH_CNA_MASK (1 << 5)
+#define ETH_FR_MASK  (1 << 6)
+#define ETH_CX_TNO_MASK (1 << 7)
 
 
 typedef struct {
