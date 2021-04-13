@@ -11,9 +11,9 @@
 #
 
 OS_C_SRC = clock.c kernel.c klibc.c kmem.c process.c queues.c \
-	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c
+	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c ip.h
 OS_C_OBJ = clock.o kernel.o klibc.o kmem.o process.o queues.o \
-	scheduler.o sio.o stacks.o syscalls.o pci.o
+	scheduler.o sio.o stacks.o syscalls.o pci.o eth.o test.o ip.o
 
 OS_S_SRC = klibs.S
 OS_S_OBJ = klibs.o
@@ -80,7 +80,7 @@ SOURCES = $(BOOT_SRC) $(FMK_SRCS) $(OS_SRCS) $(USR_SRCS)
 #       STATUS=n                dump queue & process info every 'n' seconds
 #
 
-GEN_OPTIONS = -DCLEAR_BSS -DGET_MMAP -DSP_OS_CONFIG
+GEN_OPTIONS = -DCLEAR_BSS -DGET_MMAP -DSP_OS_CONFIG -DETH_DEBUG
 DBG_OPTIONS = -DTRACE_CX -DCONSOLE_SHELL -DDEBUG_UNEXP_INTS
 
 USER_OPTIONS = $(GEN_OPTIONS) $(DBG_OPTIONS)
@@ -227,12 +227,27 @@ prog.dis: prog.o
 
 
 # qemu emulation
-QEMU = /home/course/csci352/bin/qemu-system-i386
+QEMU = /usr/bin/qemu-system-i386
+QEMUCS = /home/course/csci352/bin/qemu-system-i386
 QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw
+QEMUBASICNET = -device i82557b
+#QEMUNETCAP = -net nic,model=i82557b -net dump,file=traffic.pcap -net user
+QEMUNETCAP = -netdev user,id=u1 -device i82557b,netdev=u1 -object filter-dump,id=f1,netdev=u1,file=traffic.pcap
 
-qemu: usb.image 
-	$(QEMU) -serial mon:stdio $(QEMUOPTS)
+qemu: usb.image
+	$(QEMU) -serial mon:stdio $(QEMUOPTS) $(QEMUBASICNET)
 
+qemucs: usb.image
+	$(QEMUCS) -serial mon:stdio $(QEMUOPTS) $(QEMUBASICNET)
+
+
+# qemu local
+qemul: usb.image
+	qemu-system-i386 -serial mon:stdio $(QEMUOPTS) $(QEMUBASICNET)
+
+# qemu with ethernet capture
+qemucap: usb.image
+	$(QEMU) -serial mon:stdio $(QEMUOPTS) $(QEMUNETCAP)
 
 #
 # 'makedepend' is a program which creates dependency lists by looking
@@ -256,7 +271,7 @@ clock.o: support.h kernel.h process.h stacks.h queues.h klib.h clock.h
 clock.o: scheduler.h
 kernel.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 kernel.o: process.h stacks.h queues.h klib.h clock.h bootstrap.h syscalls.h
-kernel.o: sio.h scheduler.h users.h
+kernel.o: sio.h scheduler.h eth.h test.h users.h ip.h
 klibc.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 klibc.o: process.h stacks.h queues.h klib.h
 kmem.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
@@ -274,18 +289,16 @@ stacks.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 stacks.o: process.h stacks.h queues.h klib.h
 syscalls.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
 syscalls.o: x86arch.h process.h stacks.h queues.h klib.h x86pic.h ./uart.h
-syscalls.o: bootstrap.h syscalls.h scheduler.h clock.h sio.h
+syscalls.o: bootstrap.h syscalls.h scheduler.h clock.h sio.h eth.h
 pci.o: pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
 pci.o: x86arch.h process.h stacks.h queues.h klib.h
-eth.o: eth.h pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
-eth.o: x86arch.h process.h stacks.h queues.h klib.h
+eth.o: eth.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
+eth.o: x86arch.h process.h stacks.h queues.h klib.h pci.h ip.h x86pic.h
+test.o: pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
+test.o: x86arch.h process.h stacks.h queues.h klib.h
 users.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
-users.o: process.h stacks.h queues.h klib.h users.h userland/main1.c
-users.o: userland/main2.c userland/main3.c userland/userH.c userland/userZ.c
-users.o: userland/userI.c userland/userW.c userland/userJ.c userland/userY.c
-users.o: userland/main4.c userland/userX.c userland/main5.c userland/userP.c
-users.o: userland/userQ.c userland/userR.c userland/userS.c userland/main6.c
-users.o: userland/userV.c userland/init.c userland/idle.c
+users.o: process.h stacks.h queues.h klib.h users.h userland/init.c
+users.o: userland/idle.c
 ulibc.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 ulibc.o: process.h stacks.h queues.h klib.h
 ulibs.o: syscalls.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h

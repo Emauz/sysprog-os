@@ -5,6 +5,7 @@
 */
 #include "eth.h"
 #include "pci.h"
+#include "ip.h"
 #include "support.h"
 #include "common.h"
 #include "kdefs.h"
@@ -36,16 +37,6 @@ typedef struct {
     uint32_t IA_addr;
     uint16_t IA_pad; // extra word for longer addresses (no need for ipv4)
 } AddrSetupActionCmd_t;
-
-typedef struct {
-    uint16_t status_word;
-    uint16_t cmd_word;
-    uint32_t link_addr;
-    uint32_t tbd_array_addr;
-    uint16_t byte_cnt;
-    uint8_t tx_threshold;
-    uint8_t TBD_number;
-} TxActionCmd_t;
 
 // associates an actual command with an id to be returned
 typedef struct {
@@ -164,14 +155,15 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
 
 // start a transmit command in simple mode
 // len must be 14 bits max
-uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
+// Includes PID of transmitting process (to ensure queue synchronization)
+uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
     // check len is only 14 bits
     if((len >> 14) != 0) {
         return ETH_TOO_LARGE;
     }
 
     // allocate space on the CBL
-    uint8_t* ptr = __eth_allocate_CBL(sizeof(TxActionCmd_t) + len);
+    uint8_t* ptr = __eth_allocate_CBL(sizeof(TxActionCmd_t) + len + IPV4_HDR_LEN);
     if(ptr == NULL) {
         __cio_printf("CBL alloc fail\n");
         return ETH_NO_MEM;
@@ -189,7 +181,9 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     TxCB->TBD_number = 0x0; // doesn't matter in simple mode, zero anyways just in case
 
     // in simplified mode, the data goes directly after the command block
-    __memcpy(TxCB + 1, data, len);
+    uint8_t ipOffset = __ipv4_add_header(ptr, sizeof(TxActionCmd_t) + len, sizeof(TxActionCmd_t) + len + IPV4_HDR_LEN, pid);
+    __memcpy(TxCB + 1, data, len + IPV4_HDR_LEN);
+    // TODO: call ip_add_hdr
 
     // create a command node
     cmd_node_t* cmd = __eth_allocate_CMD();

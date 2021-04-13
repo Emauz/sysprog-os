@@ -25,6 +25,9 @@
 #include "cio.h"
 #include "sio.h"
 
+#include "queues.h"
+#include "eth.h"
+
 // copied from ulib.h
 extern void exit_helper( void );
 
@@ -39,6 +42,8 @@ extern void exit_helper( void );
 /*
 ** PRIVATE GLOBAL VARIABLES
 */
+
+static queue_t _eth_send_q = NULL;
 
 // the system call jump table
 //
@@ -611,3 +616,55 @@ void _force_exit( pcb_t *victim, int32_t status ) {
     // clean up this process
     _pcb_cleanup( victim );
 }
+
+/*
+** Blocking call to send ethernet frame over the network
+** Process will be blocked until transmit has completed, after which
+** it will be added back to the ready queue
+**
+** @param sender sending process' PCB
+** @param data   data to include in ethernet frame
+** @param len    length of data to be sent
+*/
+void _send_frame( pcb_t* sender, uint8_t* data, uint32_t len ) {
+    // get pid from sender's PCB
+    pid_t sender_pid = sender->pid;
+
+    // queue up frame to be sent
+    uint8_t tx_status = __eth_tx( data, len, sender_pid );
+    assert( tx_status == ETH_SUCCESS );
+
+    // Ensure sending process queue is initialized
+    if( _eth_send_q == NULL ){
+        _eth_send_q = _que_alloc( NULL );
+    }
+
+    // Add sender's PCB to the sending queue (block until sent)
+    int enque_status = _que_enque( _eth_send_q, sender, 0 );
+    assert( enque_status == E_SUCCESS );
+
+    // sleep the sending process
+    sender->state = Sleeping;
+
+    // we need a new current process
+    _dispatch();
+}
+
+/*
+** To be called when networking device completes transmit of
+** a queued frame.
+** 
+** Wakes the process that was waiting on that transmit to finish
+*/
+void _frame_recieved( pid_t pid ) {
+    // dequeue first process from sending queue
+    pcb_t *sender = _que_deque( _eth_send_q );
+    assert( sender != NULL );
+
+    // ensure that the sender we dequeued has the same PID we were passed
+    assert( pid == sender->pid );
+
+    // schedule sender process to be ran again
+    _schedule( sender );
+}
+
