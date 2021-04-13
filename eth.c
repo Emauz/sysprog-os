@@ -5,7 +5,6 @@
 */
 #include "eth.h"
 #include "pci.h"
-#include "ip.h"
 #include "support.h"
 #include "common.h"
 #include "kdefs.h"
@@ -163,7 +162,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
     }
 
     // allocate space on the CBL
-    uint8_t* ptr = __eth_allocate_CBL(sizeof(TxActionCmd_t) + len + IPV4_HDR_LEN);
+    uint8_t* ptr = __eth_allocate_CBL(sizeof(TxActionCmd_t) + len);
     if(ptr == NULL) {
         __cio_printf("CBL alloc fail\n");
         return ETH_NO_MEM;
@@ -181,9 +180,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
     TxCB->TBD_number = 0x0; // doesn't matter in simple mode, zero anyways just in case
 
     // in simplified mode, the data goes directly after the command block
-    uint8_t ipOffset = __ipv4_add_header(ptr, sizeof(TxActionCmd_t) + len, sizeof(TxActionCmd_t) + len + IPV4_HDR_LEN, pid);
-    __memcpy(TxCB + 1, data, len + IPV4_HDR_LEN);
-    // TODO: call ip_add_hdr
+    __memcpy(TxCB + 1, data, len);
 
     // create a command node
     cmd_node_t* cmd = __eth_allocate_CMD();
