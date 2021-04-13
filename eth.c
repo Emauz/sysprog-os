@@ -25,6 +25,10 @@ uint8_t CU_BUSY = 0; // CU initializes to idle
 #define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
 
+// max ethernet frame size is 1518 bytes
+// pick the next power of 2 just for ease
+#define RFA_SIZE 16384
+
 typedef struct {
     uint16_t status_word;
     uint16_t cmd_word;
@@ -51,6 +55,18 @@ typedef struct {
     uint16_t id;        // id of the cmd node (should be set to process PID)
 } cmd_node_t;
 
+// Receive Frame Descriptor
+// frame is placed right after descirptor in simple mode
+typedef struct {
+    uint16_t status_word;
+    uint16_t cmd_word;
+    uint32_t link_add;
+    uint32_t _reserved;
+    uint16_t count_byte;
+    uint16_t size_byte;
+    uint8_t frame[1518]; // ethernet frame
+} RFD_t;
+
 // statically allocated block of commands to use
 cmd_node_t commands[MAX_COMMANDS];
 uint8_t free_commands[MAX_COMMANDS]; // bit map of open indices in 'commands'
@@ -65,6 +81,10 @@ int CBL_end; // index into CBL
 // commands waiting to execute
 // holds nodes of type cmd_node_t
 queue_t _cu_waiting;
+
+// receive frame area
+uint8_t* RFA_data[RFA_SIZE];
+RFD_t* RFA;
 
 
 // function to be called when a command is complete, returns the id for whatever command finished
@@ -206,6 +226,9 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
 static void __eth_isr(int vector, int code) {
     // TODO check for certain kinds of interrupts
 
+    // all receives will generate RU out of resources (I think) since the EL bit is set
+    // need to check status in RFD (page 101)
+
     #ifdef ETH_DEBUG
     __cio_printf("%04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1));
     __cio_printf("ETH ISR\n");
@@ -256,6 +279,9 @@ void __eth_init(void) {
     CBL += ((uint32_t)CBL) % 2; // make sure CBL is word alignmed
     CBL_start = 0;
     CBL_end = 0;
+
+    // setup RFA
+    RFA += ((uint32_t)RFA) % 16; // 16-byte align the RFA
 
     // setup command space
     __memset(free_commands, MAX_COMMANDS, 0x0);

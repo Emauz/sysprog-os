@@ -54,6 +54,7 @@
 #define ETH_LINK_ADDR_OFFSET  0x04
 #define ETH_ACT_CMD_TX        0b100
 
+
 typedef struct {
     uint32_t CSR_MM_BA; // memory mapped base address
     uint32_t CSR_IO_BA; // i/o address space base address (only one of these is necessary)
