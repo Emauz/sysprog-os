@@ -69,7 +69,8 @@ void __eth_disable_int(void);
 void __eth_enable_int(void);
 void __eth_load_CU_base(uint32_t base_addr);
 void __eth_load_RU_base(uint32_t base_addr);
-void __eth_CU_start(uint8_t* CBL_Start);
+void __eth_CU_start(uint8_t* CBL_addr);
+void __eth_RU_start(uint8_t* RFA_addr);
 
 
 // ~high-level commands~ //
