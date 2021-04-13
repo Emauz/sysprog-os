@@ -82,7 +82,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id);
 
 // transmit data of length len
 // associate 'id' with the command
-uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id);
+uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t id);
 
 // receive data of max length len
 // associate 'id' with the command

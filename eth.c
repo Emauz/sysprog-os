@@ -164,7 +164,8 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
 
 // start a transmit command in simple mode
 // len must be 14 bits max
-uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
+// Includes PID of transmitting process (to ensure queue synchronization)
+uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
     // check len is only 14 bits
     if((len >> 14) != 0) {
         return ETH_TOO_LARGE;
