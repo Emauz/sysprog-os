@@ -181,7 +181,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, pid_t pid) {
     TxCB->TBD_number = 0x0; // doesn't matter in simple mode, zero anyways just in case
 
     // in simplified mode, the data goes directly after the command block
-    uint8_t ipOffset = __ipv4_add_header(ptr, sizeof(TxActionCmd_t) + len + IPV4_HDR_LEN), len, pid);
+    uint8_t ipOffset = __ipv4_add_header(ptr, sizeof(TxActionCmd_t) + len, sizeof(TxActionCmd_t) + len + IPV4_HDR_LEN, pid);
     __memcpy(TxCB + 1, data, len + IPV4_HDR_LEN);
     // TODO: call ip_add_hdr
 

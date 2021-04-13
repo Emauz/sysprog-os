@@ -18,11 +18,15 @@
 #endif
 
 
-uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) {
-    // uint16_t ip_eth_hdrlen = sizeof(TxActionCmd_t) + len + IPV4_HDR_LEN;
-    // if() {
-    //     return ETH_TOO_LARGE;
-    // }
+uint8_t __ipv4_add_header(uint8_t* ptr, uint8_t offset, uint16_t len, pid_t pid) {
+    // check if big enough
+
+    // make ipv4_hdr obj
+    
+
+    // memcpy the ipheader into ptr
+    // TODO : call udp layer (add_hdr function)
+    // memcpy the data into the next part of the packet
 
     return 1;
 }
