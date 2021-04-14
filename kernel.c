@@ -144,7 +144,7 @@ void _init( void ) {
     // __eth_nop();
 
     uint32_t addr;
-    htons("10.10.10.10", &addr);
+    htons("192.168.1.23", &addr);
     __eth_loadaddr(addr, 0);
 
     __eth_tx((uint8_t*)"test", 4, 0);
