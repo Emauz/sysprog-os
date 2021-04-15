@@ -147,20 +147,22 @@ void _init( void ) {
     htons("10.10.10.10", &addr);
     __eth_loadaddr(addr, 0);
 
-
+    // tests (calling it like this doesn't work.  unsure why)
     // __link_test();
 
-    uint8_t arr[128];
-    __memcpy(arr, "test", 4);
-    __link_add_header((uint8_t*) arr, 128, 0);
-    __link_add_header((uint8_t*)"test", 128, 0);
+
+    // uint8_t arr[128];
+    // __memcpy(arr, "test", 4);
+    // __link_add_header((uint8_t*) arr, 128, 0);   // this works about how I'd expect
+    // __link_add_header((uint8_t*)"test", 128, 0);
     // __link_add_header((uint8_t*)"test2", 18, 1);
     // __link_add_header((uint8_t*)"ip test2", 19, 2);
     // __link_add_header((uint8_t*)"ip test2", 19, 3);
 
-
-    // __ipv4_add_header((uint8_t*)"ip test", 42, 0);
-    // __ipv4_add_header((uint8_t*)"ip test2", 42, 1);
+    uint8_t arr2[128];
+    __memcpy(arr2, "test2", 5);
+    __ipv4_add_header((uint8_t*)arr2, 128, 1);   // not sure what's going on here
+    // __ipv4_add_header((uint8_t*)"test2", 128, 1);
     // __ipv4_add_header((uint8_t*)"ip test2", 43, 2);
     // __ipv4_add_header((uint8_t*)"ip test2", 43, 3);
 

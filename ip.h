@@ -35,7 +35,7 @@ typedef struct {
     uint16_t checksum;
     uint32_t src_addr;
     uint32_t dest_addr;
-} ipv4hdr_t;
+} NETipv4hdr_t;
 
 
 // adds an IPv4 header to an ethernet frame.

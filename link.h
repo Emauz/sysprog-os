@@ -34,6 +34,10 @@ typedef struct {
 // pid:     for syscall items
 uint8_t __link_add_header(uint8_t* data, uint16_t len, pid_t pid);
 
+// sets the destination mac address field
+// precondition: data is a packet that ALREADY has the link layer header in it.
+uint8_t __link_set_dest(uint8_t* data, uint16_t len, uint8_t dest[]);
+
 
 
 #endif

@@ -26,9 +26,19 @@ void __pci_test(void) {
 
 
 void __link_test(void) {
-  uint8_t arr[128];
-  __memcpy(arr, "test", 5);
-  __link_add_header((uint8_t*) "test", 128, 0);
+  uint8_t arr[5 + 14];
+  char test[6];
+
+  __memcpy(arr, "test", sizeof(test));
+  __link_add_header((uint8_t*) arr, sizeof(arr), 0);
+  // __link_add_header((uint8_t*)"test2", 18, 1);
+  // __link_add_header((uint8_t*)"ip test2", 19, 2);
+  // __link_add_header((uint8_t*)"ip test2", 19, 3);
+
+  // uint8_t arr[1 + 4 + 14];
+  // __memcpy(arr, "test", 5);
+  // __link_add_header((uint8_t*) arr, 4 + 14, 0);
+  // __link_add_header((uint8_t*)"test", 128, 0);
   // __link_add_header((uint8_t*)"test2", 18, 1);
   // __link_add_header((uint8_t*)"ip test2", 19, 2);
   // __link_add_header((uint8_t*)"ip test2", 19, 3);

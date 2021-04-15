@@ -31,22 +31,36 @@ uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) {
 
     __cio_printf("CBL: %08x", (uint32_t)data);
 
-    // setup cmd
-    ipv4hdr_t* IpHdr = (ipv4hdr_t*)data;
-    IpHdr->ver_ihl = IPV4_VER_IHL;
-    IpHdr->dscp_ecn = 0x00;
-    IpHdr->tot_len = len;
-    IpHdr->id = pid;
-    IpHdr->flags_offset = IPV4_FLAGS_OFFSET;
-    IpHdr->ttl = TTL_DEFAULT;           // filler value for now
-    IpHdr->protocol = UDP_PROTOCOL;     // TODO get protocol from later in the packet
-    IpHdr->checksum = 0x00;
-    IpHdr->src_addr = 0x00;
-    IpHdr->dest_addr = 0x7F000001;      // 127.0.0.1 for testing
 
-    // in simplified mode, the data goes directly after the command block
-    __memcpy(IpHdr + 1, data, len);
-    
+    __memcpy(data + sizeof(NETipv4hdr_t), data, len - sizeof(NETipv4hdr_t));
+
+    // values
+    uint8_t testVer_Ihl [1] = {0x45};
+    uint8_t testZero [1] = {0};
+
+    // setup cmd
+    NETipv4hdr_t* IpHdr = (NETipv4hdr_t*)data;
+    __memcpy(IpHdr->ver_ihl, testVer_Ihl, sizeof(testVer_Ihl));
+    __memcpy(IpHdr->dscp_ecn, testZero, sizeof(testZero));
+    __memcpy(IpHdr->tot_len, len, sizeof(IpHdr->tot_len));
+    __memcpy(IpHdr->id, (uint16_t) pid, sizeof(IpHdr->id));
+    __memcpy(IpHdr->flags_offset, 0x4000, sizeof(IpHdr->flags_offset));
+    __memcpy(IpHdr->ttl, 0x40, sizeof(IpHdr->ttl));
+    __memcpy(IpHdr->protocol, 0x11, sizeof(IpHdr->protocol));
+    __memcpy(IpHdr->checksum, 0, sizeof(IpHdr->checksum));
+    __memcpy(IpHdr->src_addr, 0, sizeof(IpHdr->src_addr));
+    __memcpy(IpHdr->dest_addr, 0x7F000001, sizeof(IpHdr->dest_addr));
+
+    // IpHdr->ver_ihl = IPV4_VER_IHL;
+    // IpHdr->dscp_ecn = 0x00;
+    // IpHdr->tot_len = len;
+    // IpHdr->id = pid;
+    // IpHdr->flags_offset = 0x4000;
+    // IpHdr->ttl = 0x40;           // filler value for now
+    // IpHdr->protocol = 0x11;      // TODO get protocol from later in the packet
+    // IpHdr->checksum = 0x00;
+    // IpHdr->src_addr = 0x00;
+    // IpHdr->dest_addr = 0x7F000001;      // 127.0.0.1 for testing    
 
     // make ipv4_hdr obj
     uint8_t linkHdr = __link_add_header(data, len, pid);
