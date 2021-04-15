@@ -15,8 +15,7 @@
 #define IP_NO_MEM 3
 
 // header lengths
-#define IPV4_HDR_LEN 20
-#define IPV6_HDR_LEN 288    // unused
+#define IPV4_HDR_LEN 160    // 20 bytes
 
 // header values
 #define IPV4_VER_IHL    0x45        // version 4, header length 20
@@ -43,7 +42,7 @@ typedef struct {
 // data:    payload. This should be a complete transport layer packet (i.e. UPD packet)
 // len:     length of the total packet
 // pid:     for syscall items
-uint8_t* __ip_add_addr(uint8_t* data, uint16_t len, pid_t pid);
+uint8_t* __ip_add_header(uint8_t* data, uint16_t len, pid_t pid);
 
 
 

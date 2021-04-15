@@ -3,4 +3,10 @@
 
 void __pci_test(void);
 
+void __link_test(void);
+
+void __ip_test(void);
+
+void __transport_test(void);
+
 #endif

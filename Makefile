@@ -11,9 +11,9 @@
 #
 
 OS_C_SRC = clock.c kernel.c klibc.c kmem.c process.c queues.c \
-	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c ip.h
+	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c ip.c link.c transport.c
 OS_C_OBJ = clock.o kernel.o klibc.o kmem.o process.o queues.o \
-	scheduler.o sio.o stacks.o syscalls.o pci.o eth.o test.o ip.o
+	scheduler.o sio.o stacks.o syscalls.o pci.o eth.o test.o ip.o link.o transport.o
 
 OS_S_SRC = klibs.S
 OS_S_OBJ = klibs.o
@@ -271,7 +271,7 @@ clock.o: support.h kernel.h process.h stacks.h queues.h klib.h clock.h
 clock.o: scheduler.h
 kernel.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 kernel.o: process.h stacks.h queues.h klib.h clock.h bootstrap.h syscalls.h
-kernel.o: sio.h scheduler.h eth.h test.h users.h
+kernel.o: sio.h scheduler.h eth.h test.h net.h users.h
 klibc.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 klibc.o: process.h stacks.h queues.h klib.h
 kmem.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
@@ -293,11 +293,14 @@ syscalls.o: bootstrap.h syscalls.h scheduler.h clock.h sio.h eth.h
 pci.o: pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
 pci.o: x86arch.h process.h stacks.h queues.h klib.h
 eth.o: eth.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
-eth.o: x86arch.h process.h stacks.h queues.h klib.h pci.h ip.h x86pic.h
+eth.o: x86arch.h process.h stacks.h queues.h klib.h pci.h x86pic.h
 test.o: pci.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
-test.o: x86arch.h process.h stacks.h queues.h klib.h
-ip.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
-ip.o: process.h stacks.h queues.h klib.h
+test.o: x86arch.h process.h stacks.h queues.h klib.h link.h ip.h transport.h
+test.o: eth.h test.h
+ip.o: link.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
+ip.o: x86arch.h process.h stacks.h queues.h klib.h ip.h eth.h x86pic.h
+link.o: eth.h common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h
+link.o: x86arch.h process.h stacks.h queues.h klib.h link.h x86pic.h
 users.o: common.h kdefs.h cio.h kmem.h compat.h support.h kernel.h x86arch.h
 users.o: process.h stacks.h queues.h klib.h users.h userland/init.c
 users.o: userland/idle.c

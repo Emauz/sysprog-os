@@ -147,20 +147,37 @@ void _init( void ) {
     htons("10.10.10.10", &addr);
     __eth_loadaddr(addr, 0);
 
-    __ipv4_add_header((uint8_t*)"ip test", 24, 0);
-    __ipv4_add_header((uint8_t*)"ip test2", 24, 1);
-    __ipv4_add_header((uint8_t*)"ip test2", 25, 2);
-    __ipv4_add_header((uint8_t*)"ip test2", 25, 3);
 
-    __eth_tx((uint8_t*)"test", 4, 0);
-    // __eth_tx((uint8_t*)"test2", 5, 0);
-    // __eth_tx((uint8_t*)"test3", 5, 0);
-    // __eth_tx((uint8_t*)"test4", 5, 0);
-    // __eth_tx((uint8_t*)"test5", 5, 0);
-    // __eth_tx((uint8_t*)"test6", 5, 0);
-    // __eth_tx((uint8_t*)"test7", 5, 0);
-    // __eth_tx((uint8_t*)"test8", 5, 0);
-    // __eth_tx((uint8_t*)"test9", 5, 0);
+    // __link_test();
+
+    uint8_t arr[128];
+    __memcpy(arr, "test", 4);
+    __link_add_header((uint8_t*) arr, 128, 0);
+    __link_add_header((uint8_t*)"test", 128, 0);
+    // __link_add_header((uint8_t*)"test2", 18, 1);
+    // __link_add_header((uint8_t*)"ip test2", 19, 2);
+    // __link_add_header((uint8_t*)"ip test2", 19, 3);
+
+
+    // __ipv4_add_header((uint8_t*)"ip test", 42, 0);
+    // __ipv4_add_header((uint8_t*)"ip test2", 42, 1);
+    // __ipv4_add_header((uint8_t*)"ip test2", 43, 2);
+    // __ipv4_add_header((uint8_t*)"ip test2", 43, 3);
+
+    // __udp_add_header((uint8_t*)"ip test", 24, 0);
+    // __udp_add_header((uint8_t*)"ip test2", 24, 1);
+    // __udp_add_header((uint8_t*)"ip test2", 25, 2);
+    // __udp_add_header((uint8_t*)"ip test2", 25, 3);
+
+    __eth_tx((uint8_t*)"test", 4, 1);
+    __eth_tx((uint8_t*)"test2", 5, 2);
+    __eth_tx((uint8_t*)"test3", 5, 3);
+    __eth_tx((uint8_t*)"test4", 5, 4);
+    __eth_tx((uint8_t*)"test5", 5, 5);
+    // __eth_tx((uint8_t*)"test6", 5, 6);
+    // __eth_tx((uint8_t*)"test7", 5, 7);
+    // __eth_tx((uint8_t*)"test8", 5, 8);
+    // __eth_tx((uint8_t*)"test9", 5, 9);
     // __eth_tx((uint8_t*)"test10", 6, 0);
     // __eth_tx((uint8_t*)"test11", 6, 0);
     // __eth_tx((uint8_t*)"test12", 6, 0);
