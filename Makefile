@@ -232,7 +232,7 @@ QEMUCS = /home/course/csci352/bin/qemu-system-i386
 QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw
 QEMUBASICNET = -device i82557b
 #QEMUNETCAP = -net nic,model=i82557b -net dump,file=traffic.pcap -net user
-QEMUNETCAP = -netdev user,id=u1 -device i82557b,netdev=u1 -object filter-dump,id=f1,netdev=u1,file=traffic.pcap
+QEMUNETCAP = -netdev user,id=u1,hostfwd=udp::8080-:8080 -device i82557b,netdev=u1 -object filter-dump,id=f1,netdev=u1,file=traffic.pcap
 
 qemu: usb.image
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) $(QEMUBASICNET)

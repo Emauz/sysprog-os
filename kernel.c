@@ -144,8 +144,9 @@ void _init( void ) {
     // __eth_nop();
 
     uint32_t addr;
-    htons("10.10.10.10", &addr);
-    __eth_loadaddr(addr, 0);
+    // htons("10.10.10.1", &addr);
+    addr = 0x0a0a0a01;
+    // __eth_loadaddr(addr, 0);
 
     // tests (calling it like this doesn't work.  unsure why)
     // __link_test();
@@ -161,25 +162,29 @@ void _init( void ) {
 
     uint8_t arr2[128];
     __memcpy(arr2, "test2", 5);
-    __ipv4_add_header((uint8_t*)arr2, 128, 1);   // not sure what's going on here
+    __ipv4_add_header((uint8_t*)arr2, 128, 1);      // not sure what's going on here.  Packet IPv4 header should be correctly formatted
     // __ipv4_add_header((uint8_t*)"test2", 128, 1);
     // __ipv4_add_header((uint8_t*)"ip test2", 43, 2);
     // __ipv4_add_header((uint8_t*)"ip test2", 43, 3);
 
+    // uint8_t arr3[128];
+    // __memcpy(arr3, "test3", 5);
+    // __ipv4_add_header((uint8_t*)arr3, 128, 1);   // haven't tested this yet
     // __udp_add_header((uint8_t*)"ip test", 24, 0);
     // __udp_add_header((uint8_t*)"ip test2", 24, 1);
     // __udp_add_header((uint8_t*)"ip test2", 25, 2);
     // __udp_add_header((uint8_t*)"ip test2", 25, 3);
 
-    __eth_tx((uint8_t*)"test", 4, 1);
-    __eth_tx((uint8_t*)"test2", 5, 2);
-    __eth_tx((uint8_t*)"test3", 5, 3);
-    __eth_tx((uint8_t*)"test4", 5, 4);
-    __eth_tx((uint8_t*)"test5", 5, 5);
-    // __eth_tx((uint8_t*)"test6", 5, 6);
-    // __eth_tx((uint8_t*)"test7", 5, 7);
-    // __eth_tx((uint8_t*)"test8", 5, 8);
-    // __eth_tx((uint8_t*)"test9", 5, 9);
+
+    __eth_tx((uint8_t*)"test", 4, 0);
+    // __eth_tx((uint8_t*)"test2", 5, 0);
+    // __eth_tx((uint8_t*)"test3", 5, 0);
+    // __eth_tx((uint8_t*)"test4", 5, 0);
+    // __eth_tx((uint8_t*)"test5", 5, 0);
+    // __eth_tx((uint8_t*)"test6", 5, 0);
+    // __eth_tx((uint8_t*)"test7", 5, 0);
+    // __eth_tx((uint8_t*)"test8", 5, 0);
+    // __eth_tx((uint8_t*)"test9", 5, 0);
     // __eth_tx((uint8_t*)"test10", 6, 0);
     // __eth_tx((uint8_t*)"test11", 6, 0);
     // __eth_tx((uint8_t*)"test12", 6, 0);
