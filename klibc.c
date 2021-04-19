@@ -135,7 +135,6 @@ void __memcpy( void *dst, register const void *src,
 **
 ** @return The length of the string
 */
-
 uint32_t __strlen( register const char *str ){
 	register uint32_t len = 0;
 

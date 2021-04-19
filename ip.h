@@ -15,7 +15,7 @@
 #define IP_NO_MEM 3
 
 // header lengths
-#define IPV4_HDR_LEN 160    // 20 bytes
+#define IPV4_HDR_LEN 20    // 20 bytes
 
 // header values
 #define IPV4_VER_IHL    0x45        // version 4, header length 20
@@ -42,8 +42,12 @@ typedef struct {
 // data:    payload. This should be a complete transport layer packet (i.e. UPD packet)
 // len:     length of the total packet
 // pid:     for syscall items
-uint8_t* __ip_add_header(uint8_t* data, uint16_t len, pid_t pid);
+uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) ;
 
+
+// sets the destination mac address field
+// precondition: data is a packet that ALREADY has the link layer header in it.
+uint8_t __ip_set_dest(uint8_t* data, uint16_t len, uint8_t dest[]);
 
 
 #endif

@@ -28,7 +28,9 @@ uint8_t* __udp_add_header(uint8_t* data, uint16_t len, pid_t pid) {
         return TL_NO_MEM;
     }
 
-    __cio_printf("CBL: %08x", (uint32_t)data);
+    // __cio_printf("CBL: %08x", (uint32_t)data);
+
+    __memcpy(data + sizeof(UDPhdr_t), data, len);
 
     // setup cmd
     UDPhdr_t* UdpHdr = (UDPhdr_t*)data;
@@ -38,11 +40,7 @@ uint8_t* __udp_add_header(uint8_t* data, uint16_t len, pid_t pid) {
     UdpHdr->checksum = 0x00;
 
 
-    __memcpy(UdpHdr + 1, data, len);
-    
-
     // make ipv4_hdr obj
-    uint8_t ipPkt = __ipv4_add_header(UdpHdr, len, pid);
+    return __ipv4_add_header(data, len, pid);
 
-    return ipPkt;
 }

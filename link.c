@@ -19,17 +19,17 @@
 
 
 uint8_t __link_add_header(uint8_t* data, uint16_t len, pid_t pid) {
-    if((len >> 14) != 0 || (len - LINK_HDR_LEN) > 1500) {
+    if((len >> 14) != 0 || (len) > 1500) {
         return LINK_TOO_LARGE;
     }
     
-    if(len < 20) {
+    if(len < 14) {
         __cio_printf("LINK alloc fail\n");
         return LINK_NO_MEM;
     }
 
     // __cio_printf("CBL: %08x", (uint32_t)data);
-    __memcpy(data + sizeof(LINKhdr_t), data, len - sizeof(LINKhdr_t));
+    __memcpy(data + sizeof(LINKhdr_t), data, ((uint32_t )len) - sizeof(LINKhdr_t));
 
     // filler data
     uint8_t testDstMac [6] = {0, 0, 0, 0, 0, 0};

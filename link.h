@@ -22,7 +22,7 @@
 
 // IPv4 structure reference: https://www.tutorialspoint.com/ipv4/ipv4_packet_structure.htm
 typedef struct {
-    uint8_t dest_mac  [6];
+    uint8_t dest_mac [6];
     uint8_t src_mac [6];
     uint8_t type [2];
 } LINKhdr_t;
@@ -33,6 +33,7 @@ typedef struct {
 // len:     length of the total packet
 // pid:     for syscall items
 uint8_t __link_add_header(uint8_t* data, uint16_t len, pid_t pid);
+
 
 // sets the destination mac address field
 // precondition: data is a packet that ALREADY has the link layer header in it.
