@@ -171,7 +171,7 @@ void _init( void ) {
     uint16_t len = sizeof(arr3);
     __memset( arr3, sizeof(arr3), 0);
     __memcpy(arr3, "test3", 5);
-    __ipv4_add_header((uint8_t*)arr3, len, 1);   // haven't tested this yet
+    __link_add_header((uint8_t*)arr3, len, 1);   // haven't tested this yet
     // __udp_add_header((uint8_t*)"ip test", 24, 0);
     // __udp_add_header((uint8_t*)"ip test2", 24, 1);
     // __udp_add_header((uint8_t*)"ip test2", 25, 2);

@@ -3,9 +3,10 @@
 *
 *   IPv4 header
 */
+#include "eth.h"
 #include "link.h"
 #include "ip.h"
-#include "eth.h"
+#include "transport.h"
 #include "support.h"
 #include "common.h"
 #include "kdefs.h"
@@ -39,9 +40,15 @@ uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) {
     // __cio_printf("\nlen size: %x \n", len);
     // __cio_printf("\nfirst item in data: 0x%x \n", *data & 0xff);
 
+    uint8_t dataShift = __udp_add_header(data + sizeof(NETipv4hdr_t), len, pid);
+    if (dataShift == 0) {
+        return 0;
+    }
 
-    __memcpy(data + sizeof(NETipv4hdr_t), data, len - sizeof(NETipv4hdr_t));
-    __cio_printf("\nfirst item in data: 0x%x \n", *(data + sizeof(NETipv4hdr_t)) & 0xff);
+    // __cio_printf("CBL: %08x", (uint32_t)data);
+    //__memcpy(data + sizeof(NETipv4hdr_t) + dataShift, data, ((uint32_t )len) - sizeof(LINKhdr_t));
+
+    // __cio_printf("\nfirst item in data: 0x%x \n", *(data + sizeof(NETipv4hdr_t)) & 0xff);
 
 
     // setup cmd
@@ -62,7 +69,7 @@ uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) {
     IpHdr->dscp_ecn = 0x00;
     IpHdr->tot_len = len;
     IpHdr->id = pid;
-    IpHdr->flags_offset = 0x4000;
+    IpHdr->flags_offset = IPV4_FLAGS_OFFSET;
     IpHdr->ttl = 0x40;           // filler value for now
     IpHdr->protocol = 0x11;      // TODO get protocol from later in the packet
     IpHdr->checksum = 0x00;
@@ -75,7 +82,8 @@ uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) {
 
     // make link_hdr obj
     __cio_printf("\nfirst item in link header: 0x%x \n", *data & 0xff);
-    return __link_add_header(data, len, pid);
+    // return __link_add_header(data, len, pid);
+    return (sizeof(NETipv4hdr_t) + dataShift);
     
 }
 

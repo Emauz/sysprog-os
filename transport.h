@@ -33,7 +33,7 @@ typedef struct {
 // data:    payload. This should be a complete transport layer packet (i.e. UPD packet)
 // len:     length of the total packet
 // pid:     for syscall items
-uint8_t* __udp_add_header(uint8_t* data, uint16_t len, pid_t pid);
+uint8_t __udp_add_header(uint8_t* data, uint16_t len, pid_t pid);
 
 
 

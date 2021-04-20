@@ -3,9 +3,10 @@
 *
 *   Intel 8255x Ethernet Device Driver header
 */
+#include "eth.h"
+#include "link.h"
 #include "ip.h"
 #include "transport.h"
-#include "support.h"
 #include "common.h"
 #include "kdefs.h"
 #include "x86pic.h"
@@ -18,7 +19,7 @@
 #endif
 
 
-uint8_t* __udp_add_header(uint8_t* data, uint16_t len, pid_t pid) {
+uint8_t __udp_add_header(uint8_t* data, uint16_t len, pid_t pid) {
     if((len >> 14) != 0 || (len - UPD_HDR_LEN) > 1500) {
         return TL_TOO_LARGE;
     }
@@ -30,7 +31,7 @@ uint8_t* __udp_add_header(uint8_t* data, uint16_t len, pid_t pid) {
 
     // __cio_printf("CBL: %08x", (uint32_t)data);
 
-    __memcpy(data + sizeof(UDPhdr_t), data, len);
+    //__memcpy(data + sizeof(UDPhdr_t), data, len);
 
     // setup cmd
     UDPhdr_t* UdpHdr = (UDPhdr_t*)data;
@@ -41,6 +42,7 @@ uint8_t* __udp_add_header(uint8_t* data, uint16_t len, pid_t pid) {
 
 
     // make ipv4_hdr obj
-    return __ipv4_add_header(data, len, pid);
+    //return __ipv4_add_header(data, len, pid);
+    return sizeof(UDPhdr_t);
 
 }
