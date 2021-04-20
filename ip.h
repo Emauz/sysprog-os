@@ -19,7 +19,7 @@
 
 // header values
 #define IPV4_VER_IHL    0x45        // version 4, header length 20
-#define IPV4_FLAGS_OFFSET   0x4000  // do not fragment bit set, fragment = 0x00.  This is 0x4000, but bytes are reversed.
+#define IPV4_FLAGS_OFFSET   0x0040  // do not fragment bit set, fragment = 0x00.  This is 0x4000, but bytes are reversed.
 #define TTL_DEFAULT     0x40        // 64 in decimal
 #define UDP_PROTOCOL    0x11        // 17 in decimal
 

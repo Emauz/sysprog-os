@@ -55,18 +55,6 @@ uint32_t __bound( uint32_t min, uint32_t value, uint32_t max ){
 }
 
 /**
-** Name:    __bytereverse
-**
-** Description: reverse the order of bytes
-**
-** @param data  Pointer to bytes
-** @param len   Number of bytes
-**/
-void __bytereverse(uint8_t * data, uint32_t len) {
-    
-}
-
-/**
 ** Name:        __memset
 **
 ** Description: initialize all bytes in a block to a specific value

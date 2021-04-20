@@ -37,10 +37,16 @@ uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) {
         return IP_NO_MEM;
     }
 
-    // __cio_printf("\nlen size: %x \n", len);
+    uint8_t hilen = len << 8;
+    uint8_t lolen = len;
+    uint16_t revlen = ((uint16_t) lolen << 8) | hilen;
+
+    __cio_printf("\nip len: %x \n", len);
+    __cio_printf("\nip len (reversed): %x \n", revlen);
     // __cio_printf("\nfirst item in data: 0x%x \n", *data & 0xff);
 
-    uint8_t dataShift = __udp_add_header(data + sizeof(NETipv4hdr_t), len, pid);
+    uint8_t dataShift = __udp_add_header(data + sizeof(NETipv4hdr_t), len - (uint16_t) sizeof(NETipv4hdr_t), pid);
+
     if (dataShift == 0) {
         return 0;
     }
@@ -50,24 +56,12 @@ uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) {
 
     // __cio_printf("\nfirst item in data: 0x%x \n", *(data + sizeof(NETipv4hdr_t)) & 0xff);
 
-
     // setup cmd
     NETipv4hdr_t* IpHdr = (NETipv4hdr_t*)data;
 
-    // __memcpy(IpHdr->ver_ihl, ipv3_ver_ihl, sizeof(IpHdr->ver_ihl));
-    // __memcpy(IpHdr->dscp_ecn, 0, sizeof(IpHdr->dscp_ecn));
-    // __memcpy(IpHdr->tot_len, len, sizeof(IpHdr->tot_len));
-    // __memcpy(IpHdr->id, (uint16_t) pid, sizeof(IpHdr->id));
-    // __memcpy(IpHdr->flags_offset, ipv4_flags_offset, sizeof(IpHdr->flags_offset));
-    // __memcpy(IpHdr->ttl, ttl_default, sizeof(IpHdr->ttl));
-    // __memcpy(IpHdr->protocol, udp_protocol, sizeof(IpHdr->protocol));
-    // __memcpy(IpHdr->checksum, 0, sizeof(IpHdr->checksum));
-    // __memcpy(IpHdr->src_addr, 0, sizeof(IpHdr->src_addr));
-    // __memcpy(IpHdr->dest_addr, 0x7F000001, sizeof(IpHdr->dest_addr));   // hardcoded for testing
-
     IpHdr->ver_ihl = IPV4_VER_IHL;
     IpHdr->dscp_ecn = 0x00;
-    IpHdr->tot_len = len;
+    IpHdr->tot_len = revlen;
     IpHdr->id = pid;
     IpHdr->flags_offset = IPV4_FLAGS_OFFSET;
     IpHdr->ttl = 0x40;           // filler value for now
@@ -81,8 +75,6 @@ uint8_t __ipv4_add_header(uint8_t* data, uint16_t len, pid_t pid) {
     // return __eth_tx(data, len, pid);     // for testing
 
     // make link_hdr obj
-    __cio_printf("\nfirst item in link header: 0x%x \n", *data & 0xff);
-    // return __link_add_header(data, len, pid);
     return (sizeof(NETipv4hdr_t) + dataShift);
     
 }

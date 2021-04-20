@@ -29,15 +29,17 @@ uint8_t __udp_add_header(uint8_t* data, uint16_t len, pid_t pid) {
         return TL_NO_MEM;
     }
 
-    // __cio_printf("CBL: %08x", (uint32_t)data);
-
-    //__memcpy(data + sizeof(UDPhdr_t), data, len);
+    __cio_printf("\ntransport len: %08x \n", len);
+    
+    uint8_t hilen = len << 8;
+    uint8_t lolen = len;
+    uint16_t revlen = ((uint16_t) lolen << 8) | hilen;
 
     // setup cmd
     UDPhdr_t* UdpHdr = (UDPhdr_t*)data;
     UdpHdr->src_port = 0x00; 
     UdpHdr->dest_port = 0x00;
-    UdpHdr->len = len;       // udp header length + payload length
+    UdpHdr->len = revlen;       // udp header length + payload length
     UdpHdr->checksum = 0x00;
 
 

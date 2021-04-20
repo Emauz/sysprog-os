@@ -30,7 +30,7 @@ uint8_t __link_add_header(uint8_t* data, uint16_t len, pid_t pid) {
         return LINK_NO_MEM;
     }
 
-    uint8_t dataShift = __ipv4_add_header(data + sizeof(LINKhdr_t), len, pid);
+    uint8_t dataShift = __ipv4_add_header(data + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), pid);
 
     // __cio_printf("CBL: %08x", (uint32_t)data);
     __memcpy(data + sizeof(LINKhdr_t) + dataShift, data, ((uint32_t )len) - sizeof(LINKhdr_t));
