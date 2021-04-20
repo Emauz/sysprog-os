@@ -298,11 +298,11 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_CNA_MASK) { // CU not active interrupt
-        // __cio_printf("CNA INT\n");
+        __cio_printf("CNA INT\n");
         // should happen when tx/loadaddr (or any CU command) finishes
 
         uint16_t status = *((uint16_t*)CBL_start);
-        __cio_printf("cmd stat: %04x\n", status);
+        // __cio_printf("cmd stat: %04x\n", status);
 
         // call the callback if it's set
         if(__eth_cmd_callback != NULL) {
