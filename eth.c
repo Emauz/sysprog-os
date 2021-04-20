@@ -195,7 +195,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
     cmd->id = id;
 
     if(CU_BUSY) {
-        _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
+        assert(E_SUCCESS == _que_enque(_cu_waiting, cmd, NULL));
     } else {
         // start it immediately
         CU_BUSY = 1;
@@ -208,7 +208,6 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
 
 // start a transmit command in simple mode
 // len must be 14 bits max
-// Includes PID of transmitting process (to ensure queue synchronization)
 uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     // check len is only 14 bits
     if((len >> 14) != 0) {
@@ -255,7 +254,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     cmd->id = id;
 
     if(CU_BUSY) {
-        _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
+        assert(E_SUCCESS == _que_enque(_cu_waiting, cmd, NULL));
     } else {
         // start it immediately
         CU_BUSY = 1;
@@ -271,9 +270,14 @@ static void __eth_isr(int vector, int code) {
     // only care about the high byte of the status word (STAT/ACK)
     uint8_t status = __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1);
 
+    // ack all interrupts that occured
+    // this needs to be read BEFORE trying to execute any CSR commands
+    __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
+
+
     #ifdef ETH_DEBUG
     // print the SCB status word most significant byte
-    __cio_printf("%04x\n", status & ETH_CNA_MASK);
+    __cio_printf("%04x\n", status);
     __cio_printf("ETH ISR\n");
     #endif
 
@@ -294,11 +298,11 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_CNA_MASK) { // CU not active interrupt
-        // __cio_printf("CNA INT\n");
+        __cio_printf("CNA INT\n");
         // should happen when tx/loadaddr (or any CU command) finishes
 
         uint16_t status = *((uint16_t*)CBL_start);
-        __cio_printf("cmd stat: %04x\n", status);
+        // __cio_printf("cmd stat: %04x\n", status);
 
         // call the callback if it's set
         if(__eth_cmd_callback != NULL) {
@@ -362,9 +366,6 @@ static void __eth_isr(int vector, int code) {
 
     // bit 1 is reserved and bit 0 is the FCP bit which is not present on the 82557
 
-    // ack all interrupts that occured
-    __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
-
     // acknowledge the SECONDARY PIC
     __outb(PIC_SEC_CMD_PORT, PIC_EOI);
 }
@@ -385,6 +386,7 @@ void __eth_init(void) {
     // setup RFA
     RFA = (RFD_t*)RFA_data;
     RFA += ((uint32_t)RFA) % 16; // 16-byte align the RFA
+    __eth_setup_RFD(RFA);
 
     // setup command space
     __memset(free_commands, MAX_COMMANDS, 0x0);
