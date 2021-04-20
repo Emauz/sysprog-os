@@ -160,9 +160,9 @@ void _init( void ) {
     // __link_add_header((uint8_t*)"ip test2", 19, 2);
     // __link_add_header((uint8_t*)"ip test2", 19, 3);
 
-    uint8_t arr2[128];
-    __memcpy(arr2, "test2", 5);
-    __ipv4_add_header((uint8_t*)arr2, 128, 1);      // not sure what's going on here.  Packet IPv4 header should be correctly formatted
+    // uint8_t arr2[128];
+    // __memcpy(arr2, "test2", 5);
+    // __ipv4_add_header((uint8_t*)arr2, 128, 1);      // not sure what's going on here.  Packet IPv4 header should be correctly formatted
     // __ipv4_add_header((uint8_t*)"test2", 128, 1);
     // __ipv4_add_header((uint8_t*)"ip test2", 43, 2);
     // __ipv4_add_header((uint8_t*)"ip test2", 43, 3);
@@ -176,26 +176,26 @@ void _init( void ) {
     // __udp_add_header((uint8_t*)"ip test2", 25, 3);
 
 
-    // __eth_tx((uint8_t*)"\0\0\0\0\0\0\0\0\0\0", 4, 0);
-    // __eth_tx((uint8_t*)"test2", 5, 0);
-    // __eth_tx((uint8_t*)"test3", 5, 0);
-    // __eth_tx((uint8_t*)"test4", 5, 0);
-    // __eth_tx((uint8_t*)"test5", 5, 0);
-    // __eth_tx((uint8_t*)"test6", 5, 0);
-    // __eth_tx((uint8_t*)"test7", 5, 0);
-    // __eth_tx((uint8_t*)"test8", 5, 0);
-    // __eth_tx((uint8_t*)"test9", 5, 0);
-    // __eth_tx((uint8_t*)"test10", 6, 0);
-    // __eth_tx((uint8_t*)"test11", 6, 0);
-    // __eth_tx((uint8_t*)"test12", 6, 0);
-    // __eth_tx((uint8_t*)"test13", 6, 0);
-    // __eth_tx((uint8_t*)"test14", 6, 0);
-    // __eth_tx((uint8_t*)"test15", 6, 0);
-    // __eth_tx((uint8_t*)"test16", 6, 0);
-    // __eth_tx((uint8_t*)"test17", 6, 0);
-    // __eth_tx((uint8_t*)"test18", 6, 0);
-    // __eth_tx((uint8_t*)"test19", 6, 0);
-    // __eth_tx((uint8_t*)"test20", 6, 0);
+    __eth_tx((uint8_t*)"test", 4, 0);
+    __eth_tx((uint8_t*)"test2", 5, 0);
+    __eth_tx((uint8_t*)"test3", 5, 0);
+    __eth_tx((uint8_t*)"test4", 5, 0);
+    __eth_tx((uint8_t*)"test5", 5, 0);
+    __eth_tx((uint8_t*)"test6", 5, 0);
+    __eth_tx((uint8_t*)"test7", 5, 0);
+    __eth_tx((uint8_t*)"test8", 5, 0);
+    __eth_tx((uint8_t*)"test9", 5, 0);
+    __eth_tx((uint8_t*)"test10", 6, 0);
+    __eth_tx((uint8_t*)"test11", 6, 0);
+    __eth_tx((uint8_t*)"test12", 6, 0);
+    __eth_tx((uint8_t*)"test13", 6, 0);
+    __eth_tx((uint8_t*)"test14", 6, 0);
+    __eth_tx((uint8_t*)"test15", 6, 0);
+    __eth_tx((uint8_t*)"test16", 6, 0);
+    __eth_tx((uint8_t*)"test17", 6, 0);
+    __eth_tx((uint8_t*)"test18", 6, 0);
+    __eth_tx((uint8_t*)"test19", 6, 0);
+    __eth_tx((uint8_t*)"test20", 6, 0);
 
     // let's try and run the system out of memory
     // for(int i = 0; i < 31; i++) {
