@@ -81,6 +81,8 @@ void __eth_load_RU_base(uint32_t base_addr);
 void __eth_CU_start(uint8_t* CBL_addr);
 void __eth_RU_start(uint8_t* RFA_addr);
 
+// holds the current MAC address of the NIC
+extern uint64_t _eth_MAC;
 
 // ~high-level commands~ //
 // return ETH_SUCCESS or other value

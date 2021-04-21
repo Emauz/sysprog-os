@@ -32,6 +32,9 @@ eth_dev_t eth;
 
 uint8_t CU_BUSY = 0; // CU initializes to idle
 
+// MAC initializes to broadcast address on reset
+uint64_t _eth_MAC = 0xFFFFFFFFFFFF;
+
 #define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
 
@@ -175,10 +178,13 @@ static inline cmd_node_t* __eth_allocate_CMD(void) {
 
 // internal address should be 48 bits, if it's not an error will be returned
 uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
-    if(addr & 0xFF << 48) {
+    if(addr & ((uint64_t)0xFF << 48)) {
         // address is over 48 bits
         return ETH_TOO_LARGE;
     }
+
+    // update the current MAC address
+    _eth_MAC = addr;
 
     // allocate space on the CBL
     AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)__eth_allocate_CBL(sizeof(AddrSetupActionCmd_t));
