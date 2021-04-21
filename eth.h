@@ -13,6 +13,8 @@
 #define ETH_ERR 1 // general error, can make more specific
 #define ETH_TOO_LARGE 2
 #define ETH_NO_MEM 3
+#define ETH_RECV_ERR 4
+#define ETH_CMD_FAIL 5
 
 // PCI vendor ID and device ID
 #define ETH_VENDOR_ID 0x8086
@@ -50,6 +52,13 @@
 #define ETH_ACT_CMD_LOAD_ADDR 0b1
 #define ETH_LINK_ADDR_OFFSET  0x04
 #define ETH_ACT_CMD_TX        0b100
+
+// action command status word high byte mask
+#define ETH_ACTION_CMD_STATUS_OK (1 << 5)
+
+// receive frame desciptor status word
+#define ETH_RFD_STATUS_OK (1 << 13)
+#define ETH_RFD_STATUS_ANY_ERROR 0b0001111111111111 // bits 0-12 set on any error
 
 // CSR Status Word MSB interrupt masks
 #define ETH_SWI_MASK (1 << 2)

@@ -117,7 +117,7 @@ void __eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status)) {
 }
 
 // function to be called when a frame is received
-void (*__eth_rx_callback)(uint16_t status,  const uint8_t* data, uint16_t count);
+void (*__eth_rx_callback)(uint16_t status, const uint8_t* data, uint16_t count);
 
 void __eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* data, uint16_t count)) {
     __eth_rx_callback = callback;
@@ -316,15 +316,18 @@ static void __eth_isr(int vector, int code) {
         // call the rx callback function with a pointer to the data section
         // of the last (and only) RFD in the RFA
 
-        // TODO check status instead of return ETH_SUCCESS (RFD status page 101)
         if(__eth_rx_callback != NULL) {
-           uint16_t actual_count = (RFA->count_byte & 0b00111111);
-           __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
-        }
+            uint16_t actual_count = (RFA->count_byte & 0b00111111);
+            if(RFA->status_word & ETH_RFD_STATUS_OK) {
+                __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
+            } else {
+                __eth_rx_callback(ETH_RECV_ERR, RFA->frame, actual_count);
+            }
+       }
 
-        uint16_t actual_count = (RFA->count_byte & 0b00111111);
 
         #ifdef ETH_DEBUG
+        uint16_t actual_count = (RFA->count_byte & 0b00111111);
         __cio_printf("\n");
         for(unsigned int i = 0; i < actual_count; i++) {
         __cio_printf("%02x ", RFA->frame[i]);
@@ -349,8 +352,12 @@ static void __eth_isr(int vector, int code) {
 
         // call the callback if it's set
         if(__eth_cmd_callback != NULL) {
-            // TODO error checking and set status accordingly
-            __eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
+            uint8_t status_word_hi = CBL[current_cmd->CBL_index + 1];
+            if(status_word_hi & ETH_ACTION_CMD_STATUS_OK) {
+                __eth_cmd_callback(current_cmd->id, ETH_CMD_FAIL);
+            } else {
+                __eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
+            }
         }
 
         // fix the CBL (unallocate the current command block)
