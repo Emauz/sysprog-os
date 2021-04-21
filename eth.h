@@ -85,9 +85,10 @@ void __eth_RU_start(uint8_t* RFA_addr);
 // ~high-level commands~ //
 // return ETH_SUCCESS or other value
 
-// load an internal address into the NIC
+// load an internal (MAC) address into the NIC
+// address must be 48-bits, if it's not will return ETH_TOO_LARGE
 // pass an ID to associate the generated command with
-uint8_t __eth_loadaddr(uint32_t addr, uint16_t id);
+uint8_t __eth_loadaddr(uint64_t addr, uint16_t id);
 
 // transmit data of length len
 // associate 'id' with the command

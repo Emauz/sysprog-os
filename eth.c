@@ -47,8 +47,12 @@ typedef struct {
     uint16_t status_word;
     uint16_t cmd_word;
     uint32_t link_addr;
-    uint32_t IA_addr;
-    uint16_t IA_pad; // extra word for longer addresses (no need for ipv4)
+    uint8_t IA_addr_1; // internal address 1st byte
+    uint8_t IA_addr_2;
+    uint8_t IA_addr_3;
+    uint8_t IA_addr_4;
+    uint8_t IA_addr_5;
+    uint8_t IA_addr_6;
 } AddrSetupActionCmd_t;
 
 // action command transmit
@@ -169,7 +173,13 @@ static inline cmd_node_t* __eth_allocate_CMD(void) {
 }
 
 
-uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
+// internal address should be 48 bits, if it's not an error will be returned
+uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
+    if(addr & 0xFF << 48) {
+        // address is over 48 bits
+        return ETH_TOO_LARGE;
+    }
+
     // allocate space on the CBL
     AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)__eth_allocate_CBL(sizeof(AddrSetupActionCmd_t));
     if(ptr == NULL) {
@@ -180,7 +190,12 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
     ptr->cmd_word = ETH_ACT_CMD_LOAD_ADDR;
     ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
     // ptr->cmd_word |= ETH_ACT_CMD_I_MASK; // no longer set the I bit
-    ptr->IA_addr = addr;
+    ptr->IA_addr_1 = addr;
+    ptr->IA_addr_2 = addr >> 8;
+    ptr->IA_addr_3 = addr >> 16;
+    ptr->IA_addr_4 = addr >> 24;
+    ptr->IA_addr_5 = addr >> 32;
+    ptr->IA_addr_6 = addr >> 40;
 
     // create a command node
     cmd_node_t* cmd = __eth_allocate_CMD();
@@ -289,19 +304,41 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_FR_MASK) { // frame ready interrupt
-        __cio_printf("FR\n");
-        // should happen and be set at the same time as RNR
-        // all receives will generate RU out of resources (I think) since the EL bit is set
-        // need to check status in RFD (page 101)
+        __cio_printf("FR INT\n");
+        // should be called everytime the RU receives a frame
 
-        // safe to ignore this one? handled by RNR
+        // call the rx callback function with a pointer to the data section
+        // of the last (and only) RFD in the RFA
+
+        // TODO check status instead of return ETH_SUCCESS (RFD status page 101)
+        if(__eth_rx_callback != NULL) {
+           uint16_t actual_count = (RFA->count_byte & 0b00111111);
+           __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
+        }
+
+        uint16_t actual_count = (RFA->count_byte & 0b00111111);
+
+        #ifdef ETH_DEBUG
+        __cio_printf("\n");
+        for(unsigned int i = 0; i < actual_count; i++) {
+        __cio_printf("%02x ", RFA->frame[i]);
+        }
+        __cio_printf("\n");
+        #endif
+
+        // reset the RFD in the RFA
+        __eth_setup_RFD(RFA);
+
+        // restart the RU
+        __eth_RU_start((uint8_t*)RFA);
+
     }
 
     if(status & ETH_CNA_MASK) { // CU not active interrupt
         __cio_printf("CNA INT\n");
         // should happen when tx/loadaddr (or any CU command) finishes
 
-        uint16_t status = *((uint16_t*)CBL_start);
+        // uint16_t status = *((uint16_t*)CBL_start);
         // __cio_printf("cmd stat: %04x\n", status);
 
         // call the callback if it's set
@@ -330,30 +367,13 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_RNR_MASK) { // RU no resources
-        #ifdef ETH_DEBUG
-        __cio_printf("RU RECEIVED\n");
-        #endif
-
-        // all receives will generate RU out of resources (I think) since the EL bit is set
-        // need to check status in RFD (page 101)
-
-        // call the rx callback function with a pointer to the data section
-        // of the last (and only) RFD in the RFA
-
-        // TODO check status instead of return ETH_SUCCESS
-        if(__eth_rx_callback != NULL) {
-            uint16_t actual_count = (RFA->count_byte & 0b00111111);
-            __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
-        }
-
-        // reset the RFD in the RFA
-        __eth_setup_RFD(RFA);
-
-        // restart the RU
-        __eth_RU_start((uint8_t*)RFA);
+        __cio_printf("RNR INT\n");
+        // this hopefully never happens, but if it does the RU has no more
+        // memory to place frames and the frame was dropped :(
     }
 
     if(status & ETH_MDI_MASK) { // MDI interrupt (media data interface)
+        __cio_printf("MDI INT\n");
         // not implemented
         // should never happen
     }

@@ -143,19 +143,18 @@ void _init( void ) {
     __eth_init();
     // __eth_nop();
 
-    uint32_t addr;
-    htons("192.168.1.1", &addr);
-    // addr = 0x0a0a0a01;
+    uint64_t addr = 0x0F0F0F0F0F0F; // MAC address (48 bits)
+    __cio_printf("addr: %016x\n", addr);
     __eth_loadaddr(addr, 0);
 
     // tests (calling it like this doesn't work.  unsure why)
     // __link_test();
 
-    uint8_t arr3[128];
-    uint16_t len = sizeof(arr3);
-    __memset( arr3, sizeof(arr3), 0);
-    __memcpy(arr3, "test3", 5);
-    __link_add_header((uint8_t*)arr3, len, 1);   // haven't tested this yet
+    // uint8_t arr3[128];
+    // uint16_t len = sizeof(arr3);
+    // __memset( arr3, sizeof(arr3), 0);
+    // __memcpy(arr3, "test3", 5);
+    // __link_add_header((uint8_t*)arr3, len, 1);   // haven't tested this yet
 
     // uint8_t arr[128];
     // __memcpy(arr, "test", 4);

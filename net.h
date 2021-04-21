@@ -14,11 +14,12 @@ static inline int htons(char* str, uint32_t* addr) {
     uint8_t scratch = 0;
     while(i < 15) { // 15 is the max characters in an address (e.g. 255.255.255.255)
         if(str[i] == '\0') {
-            buff[j] = scratch - ('0' * k);
+            buff[j] = scratch;
             break;
         }
 
-        scratch += (uint8_t)str[i];
+        scratch *= 10;
+        scratch += ((uint8_t)str[i] - '0');
         k++;
 
         if(k > 3) {
@@ -26,7 +27,7 @@ static inline int htons(char* str, uint32_t* addr) {
             return 0;
         }
         if(str[i + 1] == '.') {
-            buff[j] = scratch - ('0' * k);
+            buff[j] = scratch;
             scratch = 0;
             j++;
             k = 0;
@@ -40,7 +41,7 @@ static inline int htons(char* str, uint32_t* addr) {
         return 0;
     }
 
-    // reverse order (little endian to big endian)
+    // addr should be big endian order
     *addr = 0;
     uint8_t* addr_buff = (uint8_t*)addr;
     addr_buff[0] = buff[0];
