@@ -3,6 +3,16 @@
 
 #include "common.h"
 
+typedef struct {
+    pcb_t* proc; // process socket is attached to
+    uint16_t src_port; // port to send/receive FROM
+    uint16_t dst_port; // port to send TO
+    uint32_t src_addr; // ipv4 address to send/receive FROM
+    uint32_t dst_addr; // ipv4 address to send TO
+    uint64_t dst_MAC; // destination MAC address, 48-bits, remove if we ever implement ARP
+} socket_t;
+
+
 // sets address to network order address represented by 'str'
 // returns 1 on success, 0 on error
 static inline int htons(char* str, uint32_t* addr) {
