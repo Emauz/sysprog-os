@@ -3,9 +3,16 @@
 */
 #include "arp.h"
 #include "klib.h"
+#include "link.h"
 #include "eth.h"
 
-ARP_packet_t _arp_out;
+typedef struct {
+    LINKhdr_t eth;
+    ARP_packet_t arp;
+    uint8_t FCS[4]; // 32 bit ethernet CRC
+} packet_t;
+
+packet_t _arp_out;
 
 void __arp_respond(uint8_t* data, uint16_t len, uint32_t ip) {
     if(len != sizeof(ARP_packet_t)) {
@@ -41,22 +48,26 @@ void __arp_respond(uint8_t* data, uint16_t len, uint32_t ip) {
         return;
     }
 
-    // make our reply
-    _arp_out.htype = ETH_HTYPE;
-    _arp_out.ptype = IPV4_PTYPE;
-    _arp_out.hlen = ETH_HLEN;
-    _arp_out.plen = IPV4_PLEN;
-    _arp_out.oper = ARP_OP_REPLY;
-    _arp_out.sha[0] = _eth_MAC >> 40; // our MAC
-    _arp_out.sha[1] = _eth_MAC >> 32;
-    _arp_out.sha[2] = _eth_MAC >> 24;
-    _arp_out.sha[3] = _eth_MAC >> 16;
-    _arp_out.sha[4] = _eth_MAC >> 8;
-    _arp_out.sha[5] = _eth_MAC;
-    _arp_out.spa = ip;
+    // make our ARP packet reply
+    _arp_out.arp.htype = ETH_HTYPE;
+    _arp_out.arp.ptype = IPV4_PTYPE;
+    _arp_out.arp.hlen = ETH_HLEN;
+    _arp_out.arp.plen = IPV4_PLEN;
+    _arp_out.arp.oper = ARP_OP_REPLY;
+    _arp_out.arp.sha[0] = _eth_MAC >> 40; // our MAC
+    _arp_out.arp.sha[1] = _eth_MAC >> 32;
+    _arp_out.arp.sha[2] = _eth_MAC >> 24;
+    _arp_out.arp.sha[3] = _eth_MAC >> 16;
+    _arp_out.arp.sha[4] = _eth_MAC >> 8;
+    _arp_out.arp.sha[5] = _eth_MAC;
+    _arp_out.arp.spa = ip;
     // copy their MAC
-    __memcpy(&_arp_out.tha, &packet->spa, 6);
-    _arp_out.tpa = packet->spa;
+    __memcpy(&_arp_out.arp.tha, &packet->spa, 6);
+    _arp_out.arp.tpa = packet->spa;
+
+    // fill in our Ethernet header
+    __memcpy(&_arp_out.eth.dst_mac, &packet->spa, 6);
+    __memset(&_arp_out.eth.src_mac, 6, 0); // leave SRC MAC blank for the NIC to fill out
 
     // send it
     __eth_tx((uint8_t*)&_arp_out, sizeof(ARP_packet_t), 0);
