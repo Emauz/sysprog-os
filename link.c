@@ -3,65 +3,48 @@
 *
 *   ethernet frame header
 */
-#include "eth.h"
 #include "link.h"
 #include "ip.h"
-#include "transport.h"
-#include "support.h"
-#include "common.h"
-#include "kdefs.h"
-#include "x86pic.h"
 #include "klib.h"
-#include "queues.h"
 
-#ifdef LINK_DEBUG
+// debug
 #include "cio.h"
-#include "sio.h"
-#endif
 
-
-uint8_t __link_add_header(uint8_t* data, uint16_t len, pid_t pid) {
-    if((len >> 14) != 0 || (len) > 1500) {
-        return LINK_TOO_LARGE;
+uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
+    if(sizeof(LINKhdr_t) + 4 > len) { // header plus frame check sequence
+        return 0;
     }
-    
-    if(len < 14) {
-        __cio_printf("LINK alloc fail\n");
-        return LINK_NO_MEM;
-    }
-
-    uint8_t dataShift = __ipv4_add_header(data + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), pid);
-
-    // __cio_printf("CBL: %08x", (uint32_t)data);
-    __memcpy(data + sizeof(LINKhdr_t) + dataShift, data, ((uint32_t )len) - sizeof(LINKhdr_t));
-
-    // filler data
-    uint8_t testDstMac [6] = {0, 0, 0, 0, 0, 0};
-    uint8_t testSrcMac [6] = {0, 0, 0, 0, 0, 0};
-    uint8_t testType [2] = {0x08, 0x00};
 
     // setup header
-    LINKhdr_t* linkHdr = (LINKhdr_t*)data;
-    __memcpy(linkHdr->dest_mac, testDstMac, sizeof(testDstMac));
-    __memcpy(linkHdr->src_mac, testSrcMac, sizeof(testSrcMac));
-    __memcpy(linkHdr->type, testType, sizeof(testType));
+    LINKhdr_t* hdr = (LINKhdr_t*)buff;
+    __cio_printf("LINK HEADER: %x\n", hdr);
 
-    // pass to lower level
-    __eth_tx(data, len, pid);    // set the command to send the packet
+    hdr->dst_mac[0] = msg->dst_MAC >> 40;
+    hdr->dst_mac[1] = msg->dst_MAC >> 32;
+    hdr->dst_mac[2] = msg->dst_MAC >> 24;
+    hdr->dst_mac[3] = msg->dst_MAC >> 16;
+    hdr->dst_mac[4] = msg->dst_MAC >> 8;
+    hdr->dst_mac[5] = msg->dst_MAC;
 
-    return LINK_SUCCESS;
-}
+    // let the NIC fill in src MAC
+    hdr->src_mac[0] = 0x0;
+    hdr->src_mac[1] = 0x0;
+    hdr->src_mac[2] = 0x0;
+    hdr->src_mac[3] = 0x0;
+    hdr->src_mac[4] = 0x0;
+    hdr->src_mac[5] = 0x0;
 
+    hdr->ethertype = IPV4_ETHERTYPE;
 
-uint8_t __link_set_dest(uint8_t* data, uint16_t len, uint8_t dest[]) {
-
-    // should be 6 bytes long
-    if (sizeof(dest) != 6) {
-        return LINK_ERR;
+    uint16_t size = __ipv4_add_header(buff + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), msg);
+    if(size == 0) {
+        return 0;
     }
 
-    LINKhdr_t* linkHdr = (LINKhdr_t*)data;
-    __memcpy(linkHdr->dest_mac, dest, sizeof(dest));
+    // TODO pad the payload to at least 48 bytes
 
-    return LINK_SUCCESS;
+    // zero the frame check sequence
+    __memset(buff + size + sizeof(LINKhdr_t), 4, 0); // the NIC will fill in the CRC for us
+
+    return size + sizeof(LINKhdr_t) + 4;
 }

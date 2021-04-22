@@ -317,7 +317,7 @@ static void __eth_isr(int vector, int code) {
         // of the last (and only) RFD in the RFA
 
         if(__eth_rx_callback != NULL) {
-            uint16_t actual_count = (RFA->count_byte & 0b00111111);
+            uint16_t actual_count = (RFA->count_byte & 0b00111111); // ignore top 2 bits
             if(RFA->status_word & ETH_RFD_STATUS_OK) {
                 __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
             } else {

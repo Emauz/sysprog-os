@@ -2,6 +2,7 @@
 #define NET_H
 
 #include "common.h"
+#include "process.h"
 
 typedef struct {
     pcb_t* proc; // process socket is attached to
@@ -10,7 +11,9 @@ typedef struct {
     uint32_t src_addr; // ipv4 address to send/receive FROM
     uint32_t dst_addr; // ipv4 address to send TO
     uint64_t dst_MAC; // destination MAC address, 48-bits, remove if we ever implement ARP
-} socket_t;
+    uint16_t len; // length of 'data'
+    uint8_t* data; // data buffer to read/write from
+} msg_t;
 
 
 // sets address to network order address represented by 'str'
