@@ -41,7 +41,7 @@ uint64_t _eth_MAC = 0xFFFFFFFFFFFF;
 // max size of an ethernet frame
 #define ETH_FRAME_SIZE 1518
 
-// max ethernet frame size is 1518 bytes
+// needs to be larger than or equal to ETH_FRAME_SIZE + sizeof(RFD_t)
 // pick the next power of 2 just for convenience
 #define RFA_SIZE 2048
 
