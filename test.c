@@ -32,15 +32,14 @@ void __packet_test(void) {
 
     uint8_t buff[2000];
     msg_t msg;
-    msg.proc = 0;
     msg.src_port = 1;
     msg.dst_port = 2;
-    msg.src_addr = _ip_addr;
     msg.dst_addr = 0x0;
     msg.dst_MAC = 0x0;
     msg.len = 4;
     msg.data = (uint8_t*)"test"; // somewhere in RO data
 
+    // fills in src port, src MAC for us
     uint16_t size = __link_add_header(buff, 2000, &msg);
 
     for(uint16_t i = 0; i < size; i++) {

@@ -51,7 +51,7 @@ uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     hdr->ttl = TTL_DEFAULT;
     hdr->flags_offset = IPV4_FLAGS_OFFSET;
     hdr->protocol = UDP_PROTOCOL; // if we want to support multiple transport layers, check msg for this value
-    hdr->src_addr = msg->src_addr;
+    hdr->src_addr = _ip_addr;
     hdr->dst_addr = msg->dst_addr;
 
     uint16_t size = __udp_add_header(buff + sizeof(NETipv4hdr_t), len - sizeof(NETipv4hdr_t), msg);
