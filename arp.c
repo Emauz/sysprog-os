@@ -78,7 +78,12 @@ void __arp_respond(const uint8_t* data, uint16_t len, uint32_t ip) {
     // fill in Ethernet header
     _arp_out.eth.ethertype = ARP_ETHERTYPE;
     __memcpy(&_arp_out.eth.dst_mac, &packet->sha, 6);
-    __memset(&_arp_out.eth.src_mac, 6, 0); // leave SRC MAC blank for the NIC to fill out
+    _arp_out.eth.src_mac[0] = _eth_MAC >> 40;
+    _arp_out.eth.src_mac[1] = _eth_MAC >> 32;
+    _arp_out.eth.src_mac[2] = _eth_MAC >> 24;
+    _arp_out.eth.src_mac[3] = _eth_MAC >> 16;
+    _arp_out.eth.src_mac[4] = _eth_MAC >> 8;
+    _arp_out.eth.src_mac[5] = _eth_MAC;
 
     // send it
     __eth_tx((uint8_t*)&_arp_out, sizeof(ARP_packet_t) + sizeof(LINKhdr_t) + 4, 0);

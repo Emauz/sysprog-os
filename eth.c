@@ -316,6 +316,9 @@ static void __eth_isr(int vector, int code) {
         // call the rx callback function with a pointer to the data section
         // of the last (and only) RFD in the RFA
 
+        // TODO maybe copy out the frame somewhere first and reset the RFD before calling the callback
+        // problem with the callback taking too long won't cause an RNR (RU has no space in RFA!)
+        // alternatively just make the RFA bigger (e.g. more than one RFD, probably a good idea in the long run)
         if(__eth_rx_callback != NULL) {
             uint16_t actual_count = (RFA->count_byte & 0b00111111); // ignore top 2 bits
             if(RFA->status_word & ETH_RFD_STATUS_OK) {
@@ -465,6 +468,9 @@ void __eth_init(void) {
     __eth_load_RU_base(0x0);
 
     // TODO send config command?
+    // if we do, we should set the NSAI bit in byte 10 of the 82557 config map
+    // the default is no source address insertion (won't insert src MAC into ethernet frame header)
+    // that would be nice if it was on
 
 
     // start the receive unit

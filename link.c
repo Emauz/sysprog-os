@@ -5,6 +5,7 @@
 */
 #include "link.h"
 #include "ip.h"
+#include "eth.h"
 #include "klib.h"
 
 // debug
@@ -26,13 +27,13 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     hdr->dst_mac[4] = msg->dst_MAC >> 8;
     hdr->dst_mac[5] = msg->dst_MAC;
 
-    // let the NIC fill in src MAC
-    hdr->src_mac[0] = 0x0;
-    hdr->src_mac[1] = 0x0;
-    hdr->src_mac[2] = 0x0;
-    hdr->src_mac[3] = 0x0;
-    hdr->src_mac[4] = 0x0;
-    hdr->src_mac[5] = 0x0;
+    // let the NIC fill in src MAC, ACTUALLY this config option is set to off by default (NSAI bit of config command)
+    hdr->src_mac[0] = _eth_MAC >> 40;
+    hdr->src_mac[1] = _eth_MAC >> 32;
+    hdr->src_mac[2] = _eth_MAC >> 24;
+    hdr->src_mac[3] = _eth_MAC >> 16;
+    hdr->src_mac[4] = _eth_MAC >> 8;
+    hdr->src_mac[5] = _eth_MAC;
 
     hdr->ethertype = IPV4_ETHERTYPE;
 
@@ -43,8 +44,8 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 
     // TODO pad the payload to at least 48 bytes
 
-    // zero the frame check sequence
-    __memset(buff + size + sizeof(LINKhdr_t), 4, 0); // the NIC will fill in the CRC for us
+    // zero the frame check sequence, ACTUALLY it seems like the NIC tacks this on at the end automagically
+    // __memset(buff + size + sizeof(LINKhdr_t), 4, 0); // the NIC will fill in the CRC for us
 
     return size + sizeof(LINKhdr_t) + 4;
 }
