@@ -44,10 +44,16 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
         return 0;
     }
 
-    // TODO pad the payload to at least 48 bytes
+    size += sizeof(LINKhdr_t);
+
+    // pad the payload if it's too small
+    while(size < ETH_PAYLOAD_MIN_SIZE + sizeof(LINKhdr_t)) {
+        buff[size++] = 0x0;
+    }
 
     // zero the frame check sequence, ACTUALLY it seems like the NIC tacks this on at the end automagically
     // __memset(buff + size + sizeof(LINKhdr_t), 4, 0); // the NIC will fill in the CRC for us
+    // return size + 4;
 
-    return size + sizeof(LINKhdr_t) + 4;
+    return size;
 }
