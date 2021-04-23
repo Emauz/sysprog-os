@@ -129,7 +129,7 @@ void __eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* dat
 static inline void __eth_setup_RFD(RFD_t* RFD) {
     // setup the command word
     RFD->cmd_word = 0;
-    RFD->cmd_word |= ETH_RFD_CMD_EL; // set the EL bit to trigger an RNR interrupt
+    RFD->cmd_word |= ETH_RFD_CMD_EL; // set the EL bit to say this is the last RFD in the RFA
     RFD->cmd_word |= ETH_RFD_CMD_SF; // set the SF bit to say we're in simplfified mode
 
     // zero the link address
