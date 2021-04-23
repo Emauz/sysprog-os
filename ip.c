@@ -17,6 +17,7 @@
 // debug
 #include "cio.h"
 
+uint32_t _ip_addr = 0x0; // initialize to 0
 
 uint16_t __ipv4_checksum(const uint16_t* data, uint16_t len) {
     uint16_t sum = 0;

@@ -37,5 +37,7 @@ typedef struct {
 // also adds higher layer encapsulated layers
 uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg);
 
+// our IP address
+extern uint32_t _ip_addr;
 
 #endif

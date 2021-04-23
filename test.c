@@ -10,9 +10,6 @@
 #include "klib.h"
 #include "test.h"
 
-// TODO this should probably go in the ip layer? idk tho
-uint32_t ip_addr;
-
 // test callback for now
 // only responds to ARPs
 void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
@@ -25,12 +22,12 @@ void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
     uint16_t ethertype = ((uint16_t*)data)[6];
     if(ethertype == ARP_ETHERTYPE) {
         __cio_printf("arp respond\n");
-        __arp_respond(data + sizeof(LINKhdr_t), count - sizeof(LINKhdr_t) - 4, ip_addr);
+        __arp_respond(data + sizeof(LINKhdr_t), count - sizeof(LINKhdr_t) - 4, _ip_addr);
     }
 }
 
 void __packet_test(void) {
-    htons("10.0.2.15", &ip_addr);
+    htons("10.0.2.15", &_ip_addr);
     __eth_set_rx_callback(&rx_callback);
 
     uint8_t buff[2000];
@@ -38,7 +35,7 @@ void __packet_test(void) {
     msg.proc = 0;
     msg.src_port = 1;
     msg.dst_port = 2;
-    msg.src_addr = 0x0;
+    msg.src_addr = _ip_addr;
     msg.dst_addr = 0x0;
     msg.dst_MAC = 0x0;
     msg.len = 4;
