@@ -11,9 +11,9 @@
 #
 
 OS_C_SRC = clock.c kernel.c klibc.c kmem.c process.c queues.c \
-	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c ip.c link.c transport.c
+	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c ip.c link.c transport.c socket.c
 OS_C_OBJ = clock.o kernel.o klibc.o kmem.o process.o queues.o \
-	scheduler.o sio.o stacks.o syscalls.o pci.o eth.o test.o ip.o link.o transport.o
+	scheduler.o sio.o stacks.o syscalls.o pci.o eth.o test.o ip.o link.o transport.o socket.o
 
 OS_S_SRC = klibs.S
 OS_S_OBJ = klibs.o

@@ -54,6 +54,8 @@ int32_t userU( uint32_t, uint32_t ); int32_t userV( uint32_t, uint32_t );
 int32_t userW( uint32_t, uint32_t ); int32_t userX( uint32_t, uint32_t );
 int32_t userY( uint32_t, uint32_t ); int32_t userZ( uint32_t, uint32_t );
 
+int32_t socket_test( uint32_t, uint32_t );
+
 /*
 ** The user processes
 **
@@ -127,6 +129,10 @@ int32_t userY( uint32_t, uint32_t ); int32_t userZ( uint32_t, uint32_t );
 
 #if defined(SPAWN_V)
 #include "userland/userV.c"
+#endif
+
+#if defined(SPAWN_SOCKET_TEST)
+#include "userland/socket_test.c"
 #endif
 
 /*
