@@ -9,7 +9,6 @@
 #include "common.h"
 #include "net.h"
 
-#define IPV4_ETHERTYPE 0x0008 // byte reversed 0x0800
 #define ETH_PAYLOAD_MIN_SIZE 48
 
 // 14 bytes

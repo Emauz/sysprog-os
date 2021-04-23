@@ -6,10 +6,33 @@
 #include "transport.h"
 #include "eth.h"
 #include "net.h"
+#include "arp.h"
+#include "klib.h"
 #include "test.h"
 
 
+uint32_t ip_addr;
+
+// test callback for now
+// only responds to ARPs
+void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
+    __cio_printf("rx callback\n");
+    if(count < sizeof(LINKhdr_t) + sizeof(ARP_packet_t)) {
+        __cio_printf("packet too small\n");
+        return;
+    }
+
+    uint16_t ethertype = ((uint16_t*)data)[6];
+    if(ethertype == ARP_ETHERTYPE) {
+        __cio_printf("arp respond\n");
+        __arp_respond(data + sizeof(LINKhdr_t), count - sizeof(LINKhdr_t) - 4, ip_addr);
+    }
+}
+
 void __packet_test(void) {
+    htons("10.0.2.15", &ip_addr);
+    __eth_set_rx_callback(&rx_callback);
+
     uint8_t buff[2000];
     msg_t msg;
     msg.proc = 0;

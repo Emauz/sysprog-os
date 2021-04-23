@@ -8,14 +8,7 @@
 
 #include "common.h"
 
-// return values
-#define IP_SUCCESS 0
-#define IP_ERR 1        // general error, can make more specific (see eth.h for reference)
-#define IP_TOO_LARGE 2
-#define IP_NO_MEM 3
-
-// header lengths
-#define IPV4_HDR_LEN 20    // 20 bytes
+#define IPV4_ETHERTYPE 0x0008 // byte reversed 0x0800
 
 // header values
 #define IPV4_VER_IHL    0x45        // version 4, header length 20
