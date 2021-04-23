@@ -17,8 +17,17 @@ typedef struct {
 } msg_t;
 
 
+// set a uint16 to network order
+static inline uint16_t hton16(uint16_t num) {
+    uint8_t ret[2];
+    ret[0] = num >> 8;
+    ret[1] = num;
+    return *((uint16_t*)ret);
+}
+
 // sets address to network order address represented by 'str'
 // returns 1 on success, 0 on error
+// str is like "192.168.0.1"
 static inline int htons(char* str, uint32_t* addr) {
     uint8_t buff[4];
 
