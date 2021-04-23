@@ -138,19 +138,24 @@ void _init( void ) {
     _clk_init();
     _sio_init();
 
-    // DEBUG test functions
     // __pci_test();
     __eth_init();
     // __eth_nop();
 
-    uint32_t addr;
-    // htons("10.10.10.1", &addr);
-    addr = 0x0a0a0a01;
-    // __eth_loadaddr(addr, 0);
+    uint64_t addr = 0x0F0F0F0F0F0F; // MAC address (48 bits)
+    // __cio_printf("addr: %016x\n", addr);
+    __eth_loadaddr(addr, 0);
+
+    __packet_test();
 
     // tests (calling it like this doesn't work.  unsure why)
     // __link_test();
 
+    // uint8_t arr3[128];
+    // uint16_t len = sizeof(arr3);
+    // __memset( arr3, sizeof(arr3), 0);
+    // __memcpy(arr3, "test3", 5);
+    // __link_add_header((uint8_t*)arr3, len, 1);   // haven't tested this yet
 
     // uint8_t arr[128];
     // __memcpy(arr, "test", 4);
@@ -167,18 +172,16 @@ void _init( void ) {
     // __ipv4_add_header((uint8_t*)"ip test2", 43, 2);
     // __ipv4_add_header((uint8_t*)"ip test2", 43, 3);
 
-    uint8_t arr3[128];
-    uint16_t len = sizeof(arr3);
-    __memset( arr3, sizeof(arr3), 0);
-    __memcpy(arr3, "test3", 5);
-    __link_add_header((uint8_t*)arr3, len, 1);   // haven't tested this yet
+    // uint8_t arr3[128];
+    // __memcpy(arr3, "test3", 5);
+    // __ipv4_add_header((uint8_t*)arr3, 128, 1);   // haven't tested this yet
     // __udp_add_header((uint8_t*)"ip test", 24, 0);
     // __udp_add_header((uint8_t*)"ip test2", 24, 1);
     // __udp_add_header((uint8_t*)"ip test2", 25, 2);
     // __udp_add_header((uint8_t*)"ip test2", 25, 3);
 
 
-    __eth_tx((uint8_t*)"test", 4, 1);
+    // __eth_tx((uint8_t*)"test", 4, 0);
     // __eth_tx((uint8_t*)"test2", 5, 0);
     // __eth_tx((uint8_t*)"test3", 5, 0);
     // __eth_tx((uint8_t*)"test4", 5, 0);

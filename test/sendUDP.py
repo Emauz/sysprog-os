@@ -13,4 +13,8 @@ def main(args):
 
     sock.sendto(msg.encode('utf-8'), (ip, port))
 
-main(sys.argv)
+if len(sys.argv) == 3:
+    main(sys.argv)
+else:
+    print("using default ip: 127.0.0.1 port: 8080")
+    main(["","127.0.0.1", "8080"])

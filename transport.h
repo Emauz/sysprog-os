@@ -7,6 +7,7 @@
 #define TL_H
 
 #include "common.h"
+#include "net.h"
 
 // return values
 #define TL_SUCCESS 0
@@ -20,21 +21,19 @@
 // header values
 #define UDP_PROTOCOL    0x11        // 17 in decimal
 
-
+// 8 bytes
+#pragma pack(1)
 typedef struct {
     uint16_t src_port;
-    uint16_t dest_port;
-    uint16_t len;       // udp header length + payload length
+    uint16_t dst_port;
+    uint8_t len[2];       // udp header length + payload length
     uint16_t checksum;
 } UDPhdr_t;
 
 
-// adds a udp header to an ethernet frame.
-// data:    payload. This should be a complete transport layer packet (i.e. UPD packet)
-// len:     length of the total packet
-// pid:     for syscall items
-uint8_t __udp_add_header(uint8_t* data, uint16_t len, pid_t pid);
-
-
+// adds a UDP header and paylaod to a buffer of length len.
+// 'msg' is the message to be sent
+// return how large the packet is or 0 on error
+uint16_t __udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg);
 
 #endif

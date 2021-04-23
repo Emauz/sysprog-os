@@ -11,9 +11,9 @@
 #
 
 OS_C_SRC = clock.c kernel.c klibc.c kmem.c process.c queues.c \
-	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c ip.c link.c transport.c socket.c
+	scheduler.c sio.c stacks.c syscalls.c pci.c eth.c test.c ip.c link.c transport.c socket.c arp.c
 OS_C_OBJ = clock.o kernel.o klibc.o kmem.o process.o queues.o \
-	scheduler.o sio.o stacks.o syscalls.o pci.o eth.o test.o ip.o link.o transport.o socket.o
+	scheduler.o sio.o stacks.o syscalls.o pci.o eth.o test.o ip.o link.o transport.o socket.o arp.o
 
 OS_S_SRC = klibs.S
 OS_S_OBJ = klibs.o
@@ -232,7 +232,7 @@ QEMUCS = /home/course/csci352/bin/qemu-system-i386
 QEMUOPTS = -drive file=usb.image,index=0,media=disk,format=raw
 QEMUBASICNET = -device i82557b
 #QEMUNETCAP = -net nic,model=i82557b -net dump,file=traffic.pcap -net user
-QEMUNETCAP = -netdev user,id=u1,hostfwd=udp::8080-:8080 -device i82557b,netdev=u1 -object filter-dump,id=f1,netdev=u1,file=traffic.pcap
+QEMUNETCAP = -netdev user,id=u1,hostfwd=udp::8080-:8081 -device i82557b,netdev=u1 -object filter-dump,id=f1,netdev=u1,file=traffic.pcap
 
 qemu: usb.image
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) $(QEMUBASICNET)

@@ -3,46 +3,32 @@
 *
 *   Intel 8255x Ethernet Device Driver header
 */
-#include "eth.h"
-#include "link.h"
-#include "ip.h"
 #include "transport.h"
 #include "common.h"
-#include "kdefs.h"
-#include "x86pic.h"
 #include "klib.h"
-#include "queues.h"
 
-#ifdef TL_DEBUG
+#ifdef ETH_DEBUG
 #include "cio.h"
 #include "sio.h"
 #endif
 
 
-uint8_t __udp_add_header(uint8_t* data, uint16_t len, pid_t pid) {
-    if((len >> 14) != 0 || (len - UPD_HDR_LEN) > 1500) {
-        return TL_TOO_LARGE;
-    }
-    
-    if(len < UPD_HDR_LEN) {
-        __cio_printf("UDP alloc fail\n");
-        return TL_NO_MEM;
+uint16_t __udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
+    if((sizeof(UDPhdr_t) + msg->len) > len) {
+        return 0;
     }
 
-    // __cio_printf("CBL: %08x", (uint32_t)data);
+    UDPhdr_t* hdr = (UDPhdr_t*)buff;
 
-    //__memcpy(data + sizeof(UDPhdr_t), data, len);
+    __cio_printf("UDP header: %x\n", hdr);
 
-    // setup cmd
-    UDPhdr_t* UdpHdr = (UDPhdr_t*)data;
-    UdpHdr->src_port = 0x00; 
-    UdpHdr->dest_port = 0x00;
-    UdpHdr->len = len;       // udp header length + payload length
-    UdpHdr->checksum = 0x00;
+    hdr->src_port = msg->src_port;
+    hdr->dst_port = msg->dst_port;
+    hdr->len[0] = (sizeof(UDPhdr_t) + msg->len) >> 8;
+    hdr->len[1] = (sizeof(UDPhdr_t) + msg->len);
+    hdr->checksum = 0x0; // UDP checksum is optional in ipv4 but mandatory in ipv6
 
+    __memcpy(buff + sizeof(UDPhdr_t), msg->data, msg->len);
 
-    // make ipv4_hdr obj
-    //return __ipv4_add_header(data, len, pid);
-    return sizeof(UDPhdr_t);
-
+    return sizeof(UDPhdr_t) + msg->len;
 }

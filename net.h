@@ -2,6 +2,20 @@
 #define NET_H
 
 #include "common.h"
+#include "process.h"
+
+// describes a network message
+typedef struct {
+    uint16_t src_port; // port to send from
+    uint16_t dst_port; // port to send to / receive from
+    uint32_t src_addr; // ipv4 address to receive FROM
+    uint32_t dst_addr; // ipv4 address to send TO
+    uint64_t dst_MAC; // destination MAC address, 48-bits, remove if we ever implement ARP requests
+    uint64_t src_MAC; // sournce MAC address, 48-bits
+    uint16_t len; // length of 'data'
+    uint8_t* data; // data buffer to read/write from
+} msg_t;
+
 
 // sets address to network order address represented by 'str'
 // returns 1 on success, 0 on error
@@ -14,11 +28,12 @@ static inline int htons(char* str, uint32_t* addr) {
     uint8_t scratch = 0;
     while(i < 15) { // 15 is the max characters in an address (e.g. 255.255.255.255)
         if(str[i] == '\0') {
-            buff[j] = scratch - ('0' * k);
+            buff[j] = scratch;
             break;
         }
 
-        scratch += (uint8_t)str[i];
+        scratch *= 10;
+        scratch += ((uint8_t)str[i] - '0');
         k++;
 
         if(k > 3) {
@@ -26,7 +41,7 @@ static inline int htons(char* str, uint32_t* addr) {
             return 0;
         }
         if(str[i + 1] == '.') {
-            buff[j] = scratch - ('0' * k);
+            buff[j] = scratch;
             scratch = 0;
             j++;
             k = 0;
@@ -40,7 +55,7 @@ static inline int htons(char* str, uint32_t* addr) {
         return 0;
     }
 
-    // reverse order (little endian to big endian)
+    // addr should be big endian order
     *addr = 0;
     uint8_t* addr_buff = (uint8_t*)addr;
     addr_buff[0] = buff[0];

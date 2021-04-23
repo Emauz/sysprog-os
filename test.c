@@ -5,7 +5,52 @@
 #include "ip.h"
 #include "transport.h"
 #include "eth.h"
+#include "net.h"
+#include "arp.h"
+#include "klib.h"
 #include "test.h"
+
+// test callback for now
+// only responds to ARPs
+void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
+    __cio_printf("rx callback\n");
+    if(count < sizeof(LINKhdr_t) + sizeof(ARP_packet_t)) {
+        __cio_printf("packet too small\n");
+        return;
+    }
+
+    uint16_t ethertype = ((uint16_t*)data)[6];
+    if(ethertype == ARP_ETHERTYPE) {
+        __cio_printf("arp respond\n");
+        __arp_respond(data + sizeof(LINKhdr_t), count - sizeof(LINKhdr_t) - 4, _ip_addr);
+    }
+}
+
+void __packet_test(void) {
+    htons("10.0.2.15", &_ip_addr);
+    __eth_set_rx_callback(&rx_callback);
+
+    uint8_t buff[2000];
+    msg_t msg;
+    msg.src_port = 1;
+    msg.dst_port = 2;
+    msg.dst_addr = 0x0;
+    msg.dst_MAC = 0x0;
+    msg.len = 4;
+    msg.data = (uint8_t*)"test"; // somewhere in RO data
+
+    // fills in src port, src MAC for us
+    uint16_t size = __link_add_header(buff, 2000, &msg);
+
+    for(uint16_t i = 0; i < size; i++) {
+        __cio_printf("%02x ", buff[i]);
+        if(i % 4 == 0) {
+            __cio_printf("\n");
+        }
+    }
+
+    __eth_tx(buff, size, 0);
+}
 
 void __pci_test(void) {
   uint16_t vendorID;

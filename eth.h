@@ -13,6 +13,8 @@
 #define ETH_ERR 1 // general error, can make more specific
 #define ETH_TOO_LARGE 2
 #define ETH_NO_MEM 3
+#define ETH_RECV_ERR 4
+#define ETH_CMD_FAIL 5
 
 // PCI vendor ID and device ID
 #define ETH_VENDOR_ID 0x8086
@@ -51,6 +53,13 @@
 #define ETH_LINK_ADDR_OFFSET  0x04
 #define ETH_ACT_CMD_TX        0b100
 
+// action command status word high byte mask
+#define ETH_ACTION_CMD_STATUS_OK (1 << 5)
+
+// receive frame desciptor status word
+#define ETH_RFD_STATUS_OK (1 << 13)
+#define ETH_RFD_STATUS_ANY_ERROR 0b0001111111111111 // bits 0-12 set on any error
+
 // CSR Status Word MSB interrupt masks
 #define ETH_SWI_MASK (1 << 2)
 #define ETH_MDI_MASK (1 << 3)
@@ -81,13 +90,16 @@ void __eth_load_RU_base(uint32_t base_addr);
 void __eth_CU_start(uint8_t* CBL_addr);
 void __eth_RU_start(uint8_t* RFA_addr);
 
+// holds the current MAC address of the NIC
+extern uint64_t _eth_MAC;
 
 // ~high-level commands~ //
 // return ETH_SUCCESS or other value
 
-// load an internal address into the NIC
+// load an internal (MAC) address into the NIC
+// address must be 48-bits, if it's not will return ETH_TOO_LARGE
 // pass an ID to associate the generated command with
-uint8_t __eth_loadaddr(uint32_t addr, uint16_t id);
+uint8_t __eth_loadaddr(uint64_t addr, uint16_t id);
 
 // transmit data of length len
 // associate 'id' with the command

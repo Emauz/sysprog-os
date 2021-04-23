@@ -1,0 +1,3 @@
+NIC does not add it's own ethernet frame header it appears
+It also does not respond to ARPs / send ARPs itself
+the configure internal address sets it's MAC address (which resets to 0xFFFFFFFFFFFF (the broadcast address) every reset)

@@ -32,13 +32,16 @@ eth_dev_t eth;
 
 uint8_t CU_BUSY = 0; // CU initializes to idle
 
+// MAC initializes to broadcast address on reset
+uint64_t _eth_MAC = 0xFFFFFFFFFFFF;
+
 #define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
 
 // max size of an ethernet frame
 #define ETH_FRAME_SIZE 1518
 
-// max ethernet frame size is 1518 bytes
+// needs to be larger than or equal to ETH_FRAME_SIZE + sizeof(RFD_t)
 // pick the next power of 2 just for convenience
 #define RFA_SIZE 2048
 
@@ -47,8 +50,12 @@ typedef struct {
     uint16_t status_word;
     uint16_t cmd_word;
     uint32_t link_addr;
-    uint32_t IA_addr;
-    uint16_t IA_pad; // extra word for longer addresses (no need for ipv4)
+    uint8_t IA_addr_1; // internal address 1st byte
+    uint8_t IA_addr_2;
+    uint8_t IA_addr_3;
+    uint8_t IA_addr_4;
+    uint8_t IA_addr_5;
+    uint8_t IA_addr_6;
 } AddrSetupActionCmd_t;
 
 // action command transmit
@@ -110,7 +117,7 @@ void __eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status)) {
 }
 
 // function to be called when a frame is received
-void (*__eth_rx_callback)(uint16_t status,  const uint8_t* data, uint16_t count);
+void (*__eth_rx_callback)(uint16_t status, const uint8_t* data, uint16_t count);
 
 void __eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* data, uint16_t count)) {
     __eth_rx_callback = callback;
@@ -122,7 +129,7 @@ void __eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* dat
 static inline void __eth_setup_RFD(RFD_t* RFD) {
     // setup the command word
     RFD->cmd_word = 0;
-    RFD->cmd_word |= ETH_RFD_CMD_EL; // set the EL bit to trigger an RNR interrupt
+    RFD->cmd_word |= ETH_RFD_CMD_EL; // set the EL bit to say this is the last RFD in the RFA
     RFD->cmd_word |= ETH_RFD_CMD_SF; // set the SF bit to say we're in simplfified mode
 
     // zero the link address
@@ -169,7 +176,16 @@ static inline cmd_node_t* __eth_allocate_CMD(void) {
 }
 
 
-uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
+// internal address should be 48 bits, if it's not an error will be returned
+uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
+    if(addr & ((uint64_t)0xFF << 48)) {
+        // address is over 48 bits
+        return ETH_TOO_LARGE;
+    }
+
+    // update the current MAC address
+    _eth_MAC = addr;
+
     // allocate space on the CBL
     AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)__eth_allocate_CBL(sizeof(AddrSetupActionCmd_t));
     if(ptr == NULL) {
@@ -180,7 +196,12 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
     ptr->cmd_word = ETH_ACT_CMD_LOAD_ADDR;
     ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
     // ptr->cmd_word |= ETH_ACT_CMD_I_MASK; // no longer set the I bit
-    ptr->IA_addr = addr;
+    ptr->IA_addr_1 = addr;
+    ptr->IA_addr_2 = addr >> 8;
+    ptr->IA_addr_3 = addr >> 16;
+    ptr->IA_addr_4 = addr >> 24;
+    ptr->IA_addr_5 = addr >> 32;
+    ptr->IA_addr_6 = addr >> 40;
 
     // create a command node
     cmd_node_t* cmd = __eth_allocate_CMD();
@@ -195,7 +216,7 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
     cmd->id = id;
 
     if(CU_BUSY) {
-        _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
+        assert(E_SUCCESS == _que_enque(_cu_waiting, cmd, NULL));
     } else {
         // start it immediately
         CU_BUSY = 1;
@@ -208,7 +229,6 @@ uint8_t __eth_loadaddr(uint32_t addr, uint16_t id) {
 
 // start a transmit command in simple mode
 // len must be 14 bits max
-// Includes PID of transmitting process (to ensure queue synchronization)
 uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     // check len is only 14 bits
     if((len >> 14) != 0) {
@@ -255,7 +275,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     cmd->id = id;
 
     if(CU_BUSY) {
-        _que_enque(_cu_waiting, cmd, NULL); // TODO assert this succeeds
+        assert(E_SUCCESS == _que_enque(_cu_waiting, cmd, NULL));
     } else {
         // start it immediately
         CU_BUSY = 1;
@@ -271,9 +291,14 @@ static void __eth_isr(int vector, int code) {
     // only care about the high byte of the status word (STAT/ACK)
     uint8_t status = __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1);
 
+    // ack all interrupts that occured
+    // this needs to be read BEFORE trying to execute any CSR commands
+    __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
+
+
     #ifdef ETH_DEBUG
     // print the SCB status word most significant byte
-    __cio_printf("%04x\n", status & ETH_CNA_MASK);
+    __cio_printf("%04x\n", status);
     __cio_printf("ETH ISR\n");
     #endif
 
@@ -285,25 +310,57 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_FR_MASK) { // frame ready interrupt
-        __cio_printf("FR\n");
-        // should happen and be set at the same time as RNR
-        // all receives will generate RU out of resources (I think) since the EL bit is set
-        // need to check status in RFD (page 101)
+        __cio_printf("FR INT\n");
+        // should be called everytime the RU receives a frame
 
-        // safe to ignore this one? handled by RNR
+        // call the rx callback function with a pointer to the data section
+        // of the last (and only) RFD in the RFA
+
+        // TODO maybe copy out the frame somewhere first and reset the RFD before calling the callback
+        // problem with the callback taking too long won't cause an RNR (RU has no space in RFA!)
+        // alternatively just make the RFA bigger (e.g. more than one RFD, probably a good idea in the long run)
+        if(__eth_rx_callback != NULL) {
+            uint16_t actual_count = (RFA->count_byte & 0b00111111); // ignore top 2 bits
+            if(RFA->status_word & ETH_RFD_STATUS_OK) {
+                __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
+            } else {
+                __eth_rx_callback(ETH_RECV_ERR, RFA->frame, actual_count);
+            }
+       }
+
+
+        #ifdef ETH_DEBUG
+        uint16_t actual_count = (RFA->count_byte & 0b00111111);
+        __cio_printf("\n");
+        for(unsigned int i = 0; i < actual_count; i++) {
+        __cio_printf("%02x ", RFA->frame[i]);
+        }
+        __cio_printf("\n");
+        #endif
+
+        // reset the RFD in the RFA
+        __eth_setup_RFD(RFA);
+
+        // restart the RU
+        __eth_RU_start((uint8_t*)RFA);
+
     }
 
     if(status & ETH_CNA_MASK) { // CU not active interrupt
-        // __cio_printf("CNA INT\n");
+        __cio_printf("CNA INT\n");
         // should happen when tx/loadaddr (or any CU command) finishes
 
-        uint16_t status = *((uint16_t*)CBL_start);
-        __cio_printf("cmd stat: %04x\n", status);
+        // uint16_t status = *((uint16_t*)CBL_start);
+        // __cio_printf("cmd stat: %04x\n", status);
 
         // call the callback if it's set
         if(__eth_cmd_callback != NULL) {
-            // TODO error checking and set status accordingly
-            __eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
+            uint8_t status_word_hi = CBL[current_cmd->CBL_index + 1];
+            if(status_word_hi & ETH_ACTION_CMD_STATUS_OK) {
+                __eth_cmd_callback(current_cmd->id, ETH_CMD_FAIL);
+            } else {
+                __eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
+            }
         }
 
         // fix the CBL (unallocate the current command block)
@@ -326,30 +383,13 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_RNR_MASK) { // RU no resources
-        #ifdef ETH_DEBUG
-        __cio_printf("RU RECEIVED\n");
-        #endif
-
-        // all receives will generate RU out of resources (I think) since the EL bit is set
-        // need to check status in RFD (page 101)
-
-        // call the rx callback function with a pointer to the data section
-        // of the last (and only) RFD in the RFA
-
-        // TODO check status instead of return ETH_SUCCESS
-        if(__eth_rx_callback != NULL) {
-            uint16_t actual_count = (RFA->count_byte & 0b00111111);
-            __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
-        }
-
-        // reset the RFD in the RFA
-        __eth_setup_RFD(RFA);
-
-        // restart the RU
-        __eth_RU_start((uint8_t*)RFA);
+        __cio_printf("RNR INT\n");
+        // this hopefully never happens, but if it does the RU has no more
+        // memory to place frames and the frame was dropped :(
     }
 
     if(status & ETH_MDI_MASK) { // MDI interrupt (media data interface)
+        __cio_printf("MDI INT\n");
         // not implemented
         // should never happen
     }
@@ -361,9 +401,6 @@ static void __eth_isr(int vector, int code) {
     }
 
     // bit 1 is reserved and bit 0 is the FCP bit which is not present on the 82557
-
-    // ack all interrupts that occured
-    __outb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1, 0xFF);
 
     // acknowledge the SECONDARY PIC
     __outb(PIC_SEC_CMD_PORT, PIC_EOI);
@@ -385,6 +422,7 @@ void __eth_init(void) {
     // setup RFA
     RFA = (RFD_t*)RFA_data;
     RFA += ((uint32_t)RFA) % 16; // 16-byte align the RFA
+    __eth_setup_RFD(RFA);
 
     // setup command space
     __memset(free_commands, MAX_COMMANDS, 0x0);
@@ -430,14 +468,16 @@ void __eth_init(void) {
     __eth_load_RU_base(0x0);
 
     // TODO send config command?
+    // if we do, we should set the NSAI bit in byte 10 of the 82557 config map
+    // the default is no source address insertion (won't insert src MAC into ethernet frame header)
+    // that would be nice if it was on
 
 
     // start the receive unit
-    // TODO set up the RFD in the RFA
     // current plan is to have a single RFD in the RFA with the EL bit always set
-    // and every ISR copy out the ethernet frame somewhere (call an RxCallback??)
+    // and every ISR copy out the ethernet frame somewhere (call an RxCallback)
     // and then reset the frame, make sure to check status to send with the callback
-    // the interrupt generated by the EL bit being set should be RU out of resources
+    // the interrupt generated should be FR
     __eth_RU_start((uint8_t*)RFA);
 
     // re-enable interrupts
@@ -510,23 +550,3 @@ void __eth_RU_start(uint8_t* RFA_addr) {
     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, (uint32_t)RFA_addr);
     __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD, ETH_RU_START);
 }
-
-// for TESTING
-// void __eth_nop(void) {
-//     __cio_printf("stat: %04x\n", __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD));
-//     // setup the CBL
-//     __memset(CBL, 8, 0x0);
-//     uint8_t nop_cmd = 0b00000101; // set I and EL bit
-//     CBL[3] = nop_cmd;
-//
-//     #ifdef ETH_DEBUG
-//     __cio_printf("%02x %02x %02x %02x\n%02x %02x %02x %02x\n",
-//                   CBL[0], CBL[1], CBL[2], CBL[3], CBL[4], CBL[5], CBL[6], CBL[7]);
-//     #endif
-//
-//     // load CBL addr. into SCB GENERAL ptr.
-//     // *((uint32_t*)eth.CSR_MM_BA + ETH_SCB_GENERAL_POINTER) = (uint32_t)CBL;
-//     __outl(eth.CSR_IO_BA + ETH_SCB_GENERAL_POINTER, (uint32_t)CBL);
-//
-//     __eth_CU_start(CBL);
-// }
