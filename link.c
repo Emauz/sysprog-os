@@ -27,7 +27,9 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     hdr->dst_mac[4] = msg->dst_MAC >> 8;
     hdr->dst_mac[5] = msg->dst_MAC;
 
-    // let the NIC fill in src MAC, ACTUALLY this config option is set to off by default (NSAI bit of config command)
+    // let the NIC fill in src MAC
+    // ACTUALLY this config option is not enabled by default (NSAI bit of config command, page 75 of the manual)
+    // so we fill in the src MAC address ourselves
     hdr->src_mac[0] = _eth_MAC >> 40;
     hdr->src_mac[1] = _eth_MAC >> 32;
     hdr->src_mac[2] = _eth_MAC >> 24;
