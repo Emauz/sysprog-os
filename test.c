@@ -10,7 +10,7 @@
 #include "klib.h"
 #include "test.h"
 
-
+// TODO this should probably go in the ip layer? idk tho
 uint32_t ip_addr;
 
 // test callback for now
