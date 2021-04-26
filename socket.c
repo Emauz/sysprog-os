@@ -58,7 +58,7 @@ static queue_t _cmd_process_q = NULL;
 
 // big transmit buffer
 #define TX_BUFF_SIZE 2048
-uint8_t tx_buffer[TX_BUFF_SIZE];
+static uint8_t _tx_buffer[TX_BUFF_SIZE];
 
 /**
 **  _socket_send - write to the network
@@ -68,11 +68,11 @@ uint8_t tx_buffer[TX_BUFF_SIZE];
 **/
 void _socket_send(msg_t* msg) {
     // create the packet
-    uint16_t size = __link_add_header(tx_buffer, TX_BUFF_SIZE, msg);
+    uint16_t size = __link_add_header(_tx_buffer, TX_BUFF_SIZE, msg);
     assert( size != 0 );
 
     // queue up frame to be sent
-    if(ETH_SUCCESS != __eth_tx(tx_buffer, size, _current->pid)) {
+    if(ETH_SUCCESS != __eth_tx(_tx_buffer, size, _current->pid)) {
         RET(_current) = SOCKET_ERR;
     }
 
@@ -83,13 +83,47 @@ void _socket_send(msg_t* msg) {
     assert(E_SUCCESS == _que_enque( _cmd_process_q, _current, 0 ));
 }
 
-// TODO documentation
-// TODO recv callback function
-void _socket_recv(msg_t* msg) {
-    // add msg to a linked list holding the PCB of the caller as well
-    // that's it
+// number of processes that can be waiting on a receive at the same time
+#define NUM_RECV_PROCESSES 50
 
-    // callback needs to search the list after parsing part of the packet
+typedef struct {
+    pcb_t* proc;
+    msg_t* msg;
+} recv_node_t;
+
+// list of receiving procs and their messages to fill
+static recv_node_t _recv_list[NUM_RECV_PROCESSES];
+
+// indicates which indices are free in 'recv_list'
+static uint8_t _recv_free_map[NUM_RECV_PROCESSES];
+
+// TODO documentation
+void _socket_recv(msg_t* msg) {
+    // TODO verify data in msg_t isn't NULL so we dont segfault? maybe just dont care
+    for(int i = 0; i < NUM_RECV_PROCESSES; i++) {
+        if(!_recv_free_map[i]) { // 0 indicates free, 1 indicates taken
+            _recv_free_map[i] = 1;
+            _recv_list[i].msg = msg;
+            _recv_list[i].proc = _current;
+
+            // sleep the calling proc until we get a message for it
+            _current->state = Sleeping;
+            return;
+        }
+    }
+
+    // no free memory to store this proc, oops
+    RET(_current) = SOCKET_ERR;
+}
+
+// receive callback
+// TODO
+void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
+    // TODO
+    // parse out packet
+    // if it's IPV4/UDP find all users waiting for it in 'recv_list'
+    // if it's ARP send a response
+    // otherwise throw it away
 }
 
 /**
@@ -161,6 +195,7 @@ void _socket_init( void ) {
     // initialie queue for transmitting processes
     _cmd_process_q = _que_alloc( NULL );
 
-    // set ethernet callback
+    // set NIC callbacks
     __eth_set_cmd_callback( _socket_cmd_cb );
+    __eth_set_rx_callback( _socket_recv_cb );
 }
