@@ -49,7 +49,7 @@ SYSCALL(kill)
 SYSCALL(sleep)
 SYSCALL(spawn)
 SYSCALL(wait)
-SYSCALL(sendframe)
+SYSCALL(netsend)
 
 /*
 ** This is a bogus system call; it's here so that we can test

@@ -10,6 +10,7 @@
 #define ULIB_H_
 
 #include "common.h"
+#include "net.h"
 
 /*
 ** General (C and/or assembly) definitions
@@ -41,6 +42,50 @@
 
 // put prototypes for the system calls here
 // examples:  exit(n), bogus()
+
+/**
+** netsend - send a message over the network
+**
+** usage:	netsend(msg)
+**
+** @param msg   the message to send
+**
+** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
+*/
+void netsend( msg_t* msg );
+
+/**
+** netrecv - receive a message over the network
+**
+** usage:	netrecv(msg)
+**
+** @param msg   the structure to place the received message in
+**
+** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
+*/
+void netrecv( msg_t* msg );
+
+/**
+** setip - set the IP address of the system
+**
+** usage:	setip(addr)
+**
+** @param addr  the IP address in network (big endian) order
+**
+** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
+*/
+void setip( uint32_t addr );
+
+/**
+** setMAC - set the MAC address of the system
+**
+** usage:	setMAC(addr)
+**
+** @param addr  the 48-but MAC address in network (big endian) order
+**
+** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
+*/
+void setMAC( uint8_t addr[6] );
 
 /**
 ** exit - terminate the calling process
@@ -421,7 +466,7 @@ int cvt_hex( char *buf, uint32_t value );
 int cvt_oct( char *buf, uint32_t value );
 
 /**
-** report(ch,pid) 
+** report(ch,pid)
 **
 ** Report to the console that user 'ch' is running as 'pid'
 **

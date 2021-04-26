@@ -121,13 +121,13 @@ static void _sys_isr( int vector, int code ) {
 */
 static void _sys_exit( uint32_t args[4] ) {
     int32_t status = (int32_t) args[0];
-    
+
     // record the termination status
     _current->exit_status = status;
 
     // perform exit processing for this process
     _force_exit( _current, status );
-    
+
     // this process is done, so we need to pick another one
     _dispatch();
 }
@@ -265,7 +265,7 @@ static void _sys_getprio( uint32_t args[4] ) {
 **    prio_t setprio( prio_t new );
 */
 static void _sys_setprio( uint32_t args[4] ) {
-    
+
     if( args[0] > PRIO_LOWEST ) {
         RET(_current) = E_BAD_PARAM;
     } else {
@@ -282,7 +282,7 @@ static void _sys_setprio( uint32_t args[4] ) {
 */
 static void _sys_kill( uint32_t args[4] ) {
     pid_t pid = (pid_t) args[0];
-    
+
     // POTENTIAL DANGER:  What if we try kill(init) or kill(idle)?
     // Might want to guard for that here!
 
@@ -290,17 +290,17 @@ static void _sys_kill( uint32_t args[4] ) {
     if( pid == 0 ) {
         pid = _current->pid;
     }
-    
+
     // locate the victim
     pcb_t *pcb = _pcb_find_pid( pid );
     if( pcb == NULL ) {
         RET(_current) = E_NOT_FOUND;
         return;
     }
-    
+
     // how we process the victim depends on its current state:
     switch( pcb->state ) {
-    
+
         // for the first three of these states, the process is on
         // a queue somewhere; just mark it as 'Killed', and when it
         // comes off that queue via _schedule() or _dispatch() we
@@ -317,24 +317,24 @@ static void _sys_kill( uint32_t args[4] ) {
     case Killed:
         RET(_current) = E_SUCCESS;
         break;
-    
+
         // we have met the enemy, and he is us!
     case Running:  // current process
         _force_exit( _current, Killed );
         _dispatch();
         break;
-    
+
         // much like 'Running', except that it's not the current
         // process, so we don't have to dispatch another one
     case Waiting:
         _force_exit( pcb, Killed );
         break;
-    
+
         // you can't kill something if it's already dead
     case Zombie:
         RET(_current) = E_NOT_FOUND;
         break;
-        
+
     default:
         // this is a really bad potential problem - we have
         // a bogus process state, so we report that
@@ -388,7 +388,7 @@ static void _sys_sleep( uint32_t args[4] ) {
 **                 prio_t prio, uint32_t arg1, uint32_t arg2 );
 */
 static void _sys_spawn( uint32_t args[4] ) {
-    
+
     // is there room for one more process in the system?
     if( _active_procs >= N_PROCS ) {
         RET(_current) = E_NO_PROCS;
@@ -416,10 +416,10 @@ static void _sys_spawn( uint32_t args[4] ) {
 
     // the parent gets the PID of the child as its return value
     RET(_current) = pcb->pid;  // parent
-    
+
     // schedule the child
     _schedule( pcb );
-    
+
     // add the child to the "active process" table
     ++_active_procs;
 
@@ -430,10 +430,10 @@ static void _sys_spawn( uint32_t args[4] ) {
             break;
         }
     }
-    
+
     // if we didn't find one, we have a serious problem
     assert( i < N_PROCS );
-    
+
     // add this to the table
     _ptable[i] = pcb;
 }
@@ -447,7 +447,7 @@ static void _sys_spawn( uint32_t args[4] ) {
 static void _sys_wait( uint32_t args[4] ) {
     int children = 0;
     int i;
-    
+
     // see if this process has any children, and if so,
     // whether one of them has terminated
     for( i = 0; i < N_PROCS; ++i ) {
@@ -457,7 +457,7 @@ static void _sys_wait( uint32_t args[4] ) {
                 break;
             }
         }
-    }       
+    }
 
     // case 1:  no children
 
@@ -466,7 +466,7 @@ static void _sys_wait( uint32_t args[4] ) {
         RET(_current) = E_NO_PROCS;
         return;
     }
-    
+
     // case 2:  children, but none are zombies
 
     if( i >= N_PROCS ) {
@@ -475,19 +475,19 @@ static void _sys_wait( uint32_t args[4] ) {
         _dispatch();
         return;
     }
-    
+
     // case 3:  bingo!
-    
+
     // return the zombie's PID
     RET(_current) = _ptable[i]->pid;
-    
+
     // see if the parent wants the termination status
     int32_t *ptr = (int32_t *) (args[0]);
     if( ptr != NULL ) {
         // yes - return it
         // *****************************************************
         // Potential VM issue here!  This code assigns the exit
-        // status into a variable in the parent's address space.  
+        // status into a variable in the parent's address space.
         // This works in the baseline because we aren't using
         // any type of memory protection.  If address space
         // separation is implemented, this code will very likely
@@ -495,36 +495,53 @@ static void _sys_wait( uint32_t args[4] ) {
         // *****************************************************
         *ptr = _ptable[i]->exit_status;
     }
-    
+
     // clean up the zombie now
     _pcb_cleanup( _ptable[i] );
-    
+
     return;
 }
 
 /*
-** _sys_send_frame: send constructed ethernet frame over the network
+** _sys_netsend: send constructed Ethernet/IPV4/UDP message over the network
 **
-** Blocking call to send ethernet frame over the network
+** Blocking call to send message over the network
 ** Process will be blocked until transmit has completed, after which
 ** it will be added back to the ready queue
 **
-** @param data   data to include in ethernet frame
-** @param len    length of data to be sent
+** @param msg   the message to be sent over the network
 */
-static void _sys_send_frame( uint32_t args[4] ) {
+static void _sys_netsend( uint32_t args[4] ) {
     // debug printing
-    __cio_puts("_send_frame syscall: ");
+    __cio_puts("_netsend syscall: ");
 
     // cast parameters to correct pointer type
-    uint8_t *data = (uint8_t*)args[0];
-    uint32_t len = args[1];
+    msg_t* msg = (msg_t*)args[0];
 
     // Pass off to socket implementation
-    __socket_send_frame(data, len);
+    _socket_send(msg);
 
     __cio_puts("completed\n");
 }
+
+// TODO documentation
+static void _sys_netrecv( uint32_t args[4] ) {
+    msg_t* msg = (msg_t*)args[0];
+    _socket_recv(msg);
+}
+
+// TODO documentation
+static void _sys_setip( uint32_t args[4] ) {
+    _socket_setip(args[0]);
+}
+
+// TODO documentation
+static void _sys_setMAC( uint32_t args[4] ) {
+    uint8_t* mac = (uint8_t*)args[0];
+
+    _socket_setMAC(mac);
+}
+
 
 /*
 ** PUBLIC FUNCTIONS
@@ -561,7 +578,9 @@ void _sys_init( void ) {
     _syscalls[ SYS_sleep ]    = _sys_sleep;
     _syscalls[ SYS_spawn ]    = _sys_spawn;
     _syscalls[ SYS_wait ]     = _sys_wait;
-    _syscalls[ SYS_sendframe ]= _sys_send_frame;
+    _syscalls[ SYS_netsend ]  = _sys_netsend;
+    _syscalls[ SYS_setip ]    = _sys_setip;
+    _syscalls[ SYS_setMAC ]   = _sys_setMAC;
 
     // install the second-stage ISR
     __install_isr( INT_VEC_SYSCALL, _sys_isr );
@@ -600,9 +619,9 @@ void _force_exit( pcb_t *victim, int32_t status ) {
 
     // every process has a parent, even if it's 'init'
     assert( parent != NULL );
-    
+
     if( parent->state != Waiting ) {
-    
+
         // if the parent isn't currently waiting, turn
         // the exiting process into a zombie
         victim->state = Zombie;
@@ -610,7 +629,7 @@ void _force_exit( pcb_t *victim, int32_t status ) {
         // leave it alone and unchanged for now
         return;
     }
-        
+
     // OK, we know that the parent is currently waiting.  Waiting
     // processes, like Zombie processes, are not on an actual queue;
     // instead, they exist solely in the process table, with their
@@ -624,7 +643,7 @@ void _force_exit( pcb_t *victim, int32_t status ) {
     if( ptr != NULL ) {
         // *****************************************************
         // Potential VM issue here!  This code assigns the exit
-        // status into a variable in the parent's address space.  
+        // status into a variable in the parent's address space.
         // This works in the baseline because we aren't using
         // any type of memory protection.  If address space
         // separation is implemented, this code will very likely
@@ -639,4 +658,3 @@ void _force_exit( pcb_t *victim, int32_t status ) {
     // clean up this process
     _pcb_cleanup( victim );
 }
-

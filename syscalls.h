@@ -33,10 +33,13 @@
 #define SYS_sleep     9
 #define SYS_spawn     10
 #define SYS_wait      11
-#define SYS_sendframe 12
+#define SYS_netsend   12
+#define SYS_netrecv   13
+#define SYS_setip     14
+#define SYS_setMAC    15
 
 // UPDATE THIS DEFINITION IF MORE SYSCALLS ARE ADDED!
-#define N_SYSCALLS    13
+#define N_SYSCALLS    16
 
 // dummy system call code for testing our ISR
 #define SYS_bogus     0xbad

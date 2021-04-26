@@ -24,6 +24,7 @@
 #include "eth.h"
 #include "test.h"
 #include "net.h"
+#include "socket.h"
 
 // need init() and idle() addresses
 #include "users.h"
@@ -138,15 +139,15 @@ void _init( void ) {
     _clk_init();
     _sio_init();
 
-    // __pci_test();
+    _socket_init();
     __eth_init();
-    // __eth_nop();
 
-    uint64_t addr = 0x0F0F0F0F0F0F; // MAC address (48 bits)
-    // __cio_printf("addr: %016x\n", addr);
-    __eth_loadaddr(addr, 0);
 
     __packet_test();
+
+    // uint64_t addr = 0x0F0F0F0F0F0F; // MAC address (48 bits)
+    // __cio_printf("addr: %016x\n", addr);
+    // __eth_loadaddr(addr, 0);
 
     // tests (calling it like this doesn't work.  unsure why)
     // __link_test();
