@@ -142,71 +142,9 @@ void _init( void ) {
     _socket_init();
     __eth_init();
 
-
+    // TESTING
     __packet_test();
 
-    // uint64_t addr = 0x0F0F0F0F0F0F; // MAC address (48 bits)
-    // __cio_printf("addr: %016x\n", addr);
-    // __eth_loadaddr(addr, 0);
-
-    // tests (calling it like this doesn't work.  unsure why)
-    // __link_test();
-
-    // uint8_t arr3[128];
-    // uint16_t len = sizeof(arr3);
-    // __memset( arr3, sizeof(arr3), 0);
-    // __memcpy(arr3, "test3", 5);
-    // __link_add_header((uint8_t*)arr3, len, 1);   // haven't tested this yet
-
-    // uint8_t arr[128];
-    // __memcpy(arr, "test", 4);
-    // __link_add_header((uint8_t*) arr, 128, 0);   // this works about how I'd expect
-    // __link_add_header((uint8_t*)"test", 128, 0);
-    // __link_add_header((uint8_t*)"test2", 18, 1);
-    // __link_add_header((uint8_t*)"ip test2", 19, 2);
-    // __link_add_header((uint8_t*)"ip test2", 19, 3);
-
-    // uint8_t arr2[128];
-    // __memcpy(arr2, "test2", 5);
-    // __ipv4_add_header((uint8_t*)arr2, 128, 1);      // not sure what's going on here.  Packet IPv4 header should be correctly formatted
-    // __ipv4_add_header((uint8_t*)"test2", 128, 1);
-    // __ipv4_add_header((uint8_t*)"ip test2", 43, 2);
-    // __ipv4_add_header((uint8_t*)"ip test2", 43, 3);
-
-    // uint8_t arr3[128];
-    // __memcpy(arr3, "test3", 5);
-    // __ipv4_add_header((uint8_t*)arr3, 128, 1);   // haven't tested this yet
-    // __udp_add_header((uint8_t*)"ip test", 24, 0);
-    // __udp_add_header((uint8_t*)"ip test2", 24, 1);
-    // __udp_add_header((uint8_t*)"ip test2", 25, 2);
-    // __udp_add_header((uint8_t*)"ip test2", 25, 3);
-
-
-    // __eth_tx((uint8_t*)"test", 4, 0);
-    // __eth_tx((uint8_t*)"test2", 5, 0);
-    // __eth_tx((uint8_t*)"test3", 5, 0);
-    // __eth_tx((uint8_t*)"test4", 5, 0);
-    // __eth_tx((uint8_t*)"test5", 5, 0);
-    // __eth_tx((uint8_t*)"test6", 5, 0);
-    // __eth_tx((uint8_t*)"test7", 5, 0);
-    // __eth_tx((uint8_t*)"test8", 5, 0);
-    // __eth_tx((uint8_t*)"test9", 5, 0);
-    // __eth_tx((uint8_t*)"test10", 6, 0);
-    // __eth_tx((uint8_t*)"test11", 6, 0);
-    // __eth_tx((uint8_t*)"test12", 6, 0);
-    // __eth_tx((uint8_t*)"test13", 6, 0);
-    // __eth_tx((uint8_t*)"test14", 6, 0);
-    // __eth_tx((uint8_t*)"test15", 6, 0);
-    // __eth_tx((uint8_t*)"test16", 6, 0);
-    // __eth_tx((uint8_t*)"test17", 6, 0);
-    // __eth_tx((uint8_t*)"test18", 6, 0);
-    // __eth_tx((uint8_t*)"test19", 6, 0);
-    // __eth_tx((uint8_t*)"test20", 6, 0);
-
-    // let's try and run the system out of memory
-    // for(int i = 0; i < 31; i++) {
-    //     __eth_tx((uint8_t*)"¯\\_(ツ)_/¯", 9, 0);
-    // }
 
     __cio_puts( "\nModule initialization complete.\n" );
     __cio_puts( "-------------------------------\n" );

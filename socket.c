@@ -163,6 +163,9 @@ void _socket_setMAC(uint8_t addr[6]) {
 ** Callback for when networking device completes a command (TX/loadaddr) job
 **
 ** Wakes the process that was waiting on that job to finish
+**
+** NOTE: commands executed with an id of 0 means the kernel started the command
+**       so the callback should ignore it
 */
 void _socket_cmd_cb( uint16_t id, uint16_t status ) {
     if(id == 0) { // kernel id, do nothing
