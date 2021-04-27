@@ -84,7 +84,7 @@ int __link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
         __cio_printf("link -> ipv4\n");
         return __ipv4_parse_frame(msg, len - sizeof(LINKhdr_t), data + sizeof(LINKhdr_t));
     } else if(hdr->ethertype == ARP_ETHERTYPE) {
-        __arp_respond(data + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t) - 4, _ip_addr);
+        __arp_respond(data + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), _ip_addr);
     }
     return 0; // nothing that the user needs, either ARP or unsupported protocol
 }
