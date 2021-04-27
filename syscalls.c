@@ -579,6 +579,7 @@ void _sys_init( void ) {
     _syscalls[ SYS_spawn ]    = _sys_spawn;
     _syscalls[ SYS_wait ]     = _sys_wait;
     _syscalls[ SYS_netsend ]  = _sys_netsend;
+    _syscalls[ SYS_netrecv ]  = _sys_netrecv;
     _syscalls[ SYS_setip ]    = _sys_setip;
     _syscalls[ SYS_setMAC ]   = _sys_setMAC;
 
