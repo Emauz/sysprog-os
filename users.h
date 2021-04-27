@@ -115,7 +115,7 @@
 #define SPAWN_U
 #define SPAWN_V
 */
-#define SPAWN_SOCKET_TEST
+//#define SPAWN_SOCKET_TEST
 
 //
 // Users W-Z are spawned from other processes; they
