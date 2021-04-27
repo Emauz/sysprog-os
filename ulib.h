@@ -60,6 +60,9 @@ void netsend( msg_t* msg );
 ** usage:	netrecv(msg)
 **
 ** @param msg   the structure to place the received message in
+** NOTE: msg.len will be updated to be the length of the packet received,
+**       even if larger than 'data'. Only up to the original len bytes will
+**       be copied to 'data' however.
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */

@@ -308,7 +308,7 @@ void __sprint( char *dst, char *fmt, ... ) {
     ** to point to the next "thing", and interpret it according
     ** to the format string.
     */
-    
+
     // get the pointer to the first "value" parameter
     ap = (int *)(&fmt) + 1;
 

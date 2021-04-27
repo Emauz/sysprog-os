@@ -70,7 +70,7 @@ uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 }
 
 
-int __ipv4_parse_frame(msg_t* msg, uint16_t len, uint8_t* data) {
+int __ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     if(sizeof(NETipv4hdr_t) > len) {
         return 0; // error, small packet
     }

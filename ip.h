@@ -42,7 +42,7 @@ uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg);
 // frame is 'len' bytes at the address 'data'
 // will call UDP parse frame if protocl is UDP, ignores the packet otherwise
 // returns 1 if the packet needs to be passed to a user, 0 otherwise
-int __ipv4_parse_frame(msg_t* msg, uint16_t len, uint8_t* data);
+int __ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data);
 
 // our IP address
 extern uint32_t _ip_addr;

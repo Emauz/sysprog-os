@@ -59,25 +59,25 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     return size;
 }
 
-int __link_parse_frame(msg_t* msg, uint16_t len, uint8_t* data) {
+int __link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     if(sizeof(LINKhdr_t) > len) {
         return 0;
     }
 
     LINKhdr_t* hdr = (LINKhdr_t*)data;
-    msg->dst_MAC = hdr->dst_mac[0] << 40;
-    msg->dst_MAC |= hdr->dst_mac[1] << 32;
-    msg->dst_MAC |= hdr->dst_mac[2] << 24;
-    msg->dst_MAC |= hdr->dst_mac[3] << 16;
-    msg->dst_MAC |= hdr->dst_mac[4] << 8;
-    msg->dst_MAC |= hdr->dst_mac[5];
+    msg->dst_MAC = (uint64_t)hdr->dst_mac[0] << 40;
+    msg->dst_MAC |= (uint64_t)hdr->dst_mac[1] << 32;
+    msg->dst_MAC |= (uint64_t)hdr->dst_mac[2] << 24;
+    msg->dst_MAC |= (uint64_t)hdr->dst_mac[3] << 16;
+    msg->dst_MAC |= (uint64_t)hdr->dst_mac[4] << 8;
+    msg->dst_MAC |= (uint64_t)hdr->dst_mac[5];
 
-    msg->src_MAC = hdr->src_mac[0] << 40;
-    msg->src_MAC |= hdr->src_mac[1] << 32;
-    msg->src_MAC |= hdr->src_mac[2] << 24;
-    msg->src_MAC |= hdr->src_mac[3] << 16;
-    msg->src_MAC |= hdr->src_mac[4] << 8;
-    msg->src_MAC |= hdr->src_mac[5];
+    msg->src_MAC = (uint64_t)hdr->src_mac[0] << 40;
+    msg->src_MAC |= (uint64_t)hdr->src_mac[1] << 32;
+    msg->src_MAC |= (uint64_t)hdr->src_mac[2] << 24;
+    msg->src_MAC |= (uint64_t)hdr->src_mac[3] << 16;
+    msg->src_MAC |= (uint64_t)hdr->src_mac[4] << 8;
+    msg->src_MAC |= (uint64_t)hdr->src_mac[5];
 
     if(hdr->ethertype == IPV4_ETHERTYPE) {
         return __ipv4_parse_frame(msg, len - sizeof(LINKhdr_t), data + sizeof(LINKhdr_t));

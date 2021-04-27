@@ -40,6 +40,6 @@ uint16_t __udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg);
 // frame is 'len' bytes at the address 'data'
 // will copy as much of UDP payload into msg->data as can fit
 // returns 1 if the packet needs to be passed to a user, 0 on error
-int __udp_parse_frame(msg_t* msg, uint16_t len, uint8_t* data);
+int __udp_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data);
 
 #endif

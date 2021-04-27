@@ -34,37 +34,30 @@ uint16_t __udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 }
 
 
-int __udp_parse_frame(msg_t* msg, uint16_t len, uint8_t* data) {
+int __udp_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     if(sizeof(UDPhdr_t) > len) {
         return 0; // too small
     }
 
     UDPhdr_t* hdr = (UDPhdr_t*)data;
 
+    // set ports
     msg->src_port = hdr->src_port;
     msg->dst_port = hdr->dst_port;
+
+    // set msg pointer
+    msg->data = data + sizeof(UDPhdr_t);
 
     uint16_t size = hdr->len[1];
     size |= hdr->len[0] << 8;
 
-    len -= sizeof(UDPhdr_t);
-    if(len < size) {
-        return 0; // something went wrong, we're saying we have more data than we do
-    } // if len > size we have some junk on the end of the packet, that's okay for now
-
-    // TODO could check the checksum if there's one
-
-    uint16_t min = size;
-    if(msg->len < size) { // need to copy fewer bytes than we actually got
-        min = msg->len;
+    if(size > len - sizeof(UDPhdr_t)) {
+        return 0; // packet is larger than what we stored, size should equal len minus the header size
     }
 
-    // copy what we can
-    __memcpy(msg->data, data + sizeof(UDPhdr_t), min);
-
-    // fill in the ACTUAL size we got
-    // may be different than the buffer size the user specified
     msg->len = size;
+
+    // TODO could check the checksum if there's one
 
     return 1;
 }

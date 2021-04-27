@@ -116,14 +116,56 @@ void _socket_recv(msg_t* msg) {
     RET(_current) = SOCKET_ERR;
 }
 
+// msg to parse packets into
+static msg_t _temp_msg;
+
 // receive callback
-// TODO
+// TODO documentation
+// wakes up all proccess waiting for this packet
 void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
-    // TODO
-    // parse out packet
-    // if it's IPV4/UDP find all users waiting for it in 'recv_list'
-    // if it's ARP send a response
-    // otherwise throw it away
+    if(!__link_parse_frame(&_temp_msg, count, data)) {
+        return; // bad frame or an ARP, nothing else to do
+    } // else we need to pass it to a user
+
+    recv_node_t* node;
+    for(int i = 0; i < NUM_RECV_PROCESSES; i++) {
+        if(_recv_free_map[i]) { // we found a waiting process
+            node = &_recv_list[i];
+
+            // check if someone needs this packet
+            // both ports and source address need to match what user said
+            // everything else is filled in
+            if(node->msg->src_port != _temp_msg.src_port) {
+                continue;
+            }
+            if(node->msg->dst_port != _temp_msg.dst_port) {
+                continue;
+            }
+            if(node->msg->src_addr != _temp_msg.src_addr) {
+                continue;
+            }
+
+            // we found a packet someone needs!
+            node->msg->src_port = _temp_msg.src_port;
+            node->msg->dst_port = _temp_msg.dst_port;
+            node->msg->src_addr = _temp_msg.src_addr;
+
+            // we have room for the whole payload
+            if(node->msg->len >= _temp_msg.len) {
+                __memcpy(node->msg->data, _temp_msg.data, _temp_msg.len);
+            } else { // we can only store part of it
+                __memcpy(node->msg->data, _temp_msg.data, node->msg->len);
+            }
+
+            node->msg->len = _temp_msg.len; // len should be however big the packet we got, regardless if we can store it
+
+            // successful receive
+            RET(node->proc) = SOCKET_SUCCESS;
+
+            // wake up the waiting process
+            _schedule(node->proc);
+        }
+    }
 }
 
 /**
