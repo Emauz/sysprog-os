@@ -68,3 +68,25 @@ uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 
     return size + sizeof(NETipv4hdr_t);
 }
+
+
+int __ipv4_parse_frame(msg_t* msg, uint16_t len, uint8_t* data) {
+    if(sizeof(NETipv4hdr_t) > len) {
+        return 0; // error, small packet
+    }
+
+    // TODO could do more error checking, but oh well
+    NETipv4hdr_t* hdr = (NETipv4hdr_t*)data;
+
+    if(hdr->dst_addr != _ip_addr) {
+        return 0; // packet wasn't meant for us, oopsies
+    }
+
+    msg->src_addr = hdr->src_addr;
+
+    if(hdr->protocol == UDP_PROTOCOL) {
+        return __udp_parse_frame(msg, len - sizeof(NETipv4hdr_t), data + sizeof(NETipv4hdr_t));
+    }
+
+    return 0; // unsupported protocol
+}

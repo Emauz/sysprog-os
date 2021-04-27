@@ -42,12 +42,12 @@ void __packet_test(void) {
     // fills in src port, src MAC for us
     uint16_t size = __link_add_header(buff, 2000, &msg);
 
-    for(uint16_t i = 0; i < size; i++) {
-        __cio_printf("%02x ", buff[i]);
-        if(i % 4 == 0) {
-            __cio_printf("\n");
-        }
-    }
+    // for(uint16_t i = 0; i < size; i++) {
+    //     __cio_printf("%02x ", buff[i]);
+    //     if(i % 4 == 0) {
+    //         __cio_printf("\n");
+    //     }
+    // }
 
     __eth_tx(buff, size, 0);
 }

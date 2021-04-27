@@ -26,4 +26,10 @@ typedef struct {
 // also adds higher layer encapsulated layers
 uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg);
 
+// parses a frame into a msg structure
+// frame is 'len' bytes at the address 'data'
+// will call ipv4 parse frame if etherthype is ipv4, will respond to arp if ethertype is arp type
+// returns 1 if the packet needs to be passed to a user, 0 otherwise
+int __link_parse_frame(msg_t* msg, uint16_t len, uint8_t* data);
+
 #endif
