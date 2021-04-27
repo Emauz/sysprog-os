@@ -159,6 +159,9 @@ void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
 
             node->msg->len = _temp_msg.len; // len should be however big the packet we got, regardless if we can store it
 
+            // free the memory in the waiting list
+            _recv_free_map[i] = 0;
+
             // successful receive
             RET(node->proc) = SOCKET_SUCCESS;
 
