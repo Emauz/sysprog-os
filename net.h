@@ -13,7 +13,7 @@ typedef struct {
     uint32_t src_addr; // ipv4 address to receive FROM
     uint32_t dst_addr; // ipv4 address to send TO
     uint64_t dst_MAC; // destination MAC address, 48-bits, remove if we ever implement ARP requests
-    uint64_t src_MAC; // sournce MAC address, 48-bits
+    uint64_t src_MAC; // source MAC address, 48-bits
     uint16_t len; // length of 'data' (in system's endianness, not network order)
     uint8_t* data; // data buffer to read/write from
 } msg_t;

@@ -78,14 +78,14 @@ typedef struct {
 } cmd_node_t;
 
 // Receive Frame Descriptor
-// frame is placed right after descirptor in simple mode
+// frame is placed right after descriptor in simple mode
 typedef struct {
     uint16_t status_word;
     uint16_t cmd_word;
     uint32_t link_addr;
     uint32_t _reserved;
-    uint16_t count_byte;
-    uint16_t size_byte;
+    uint16_t count_word;
+    uint16_t size_word;
     uint8_t frame[ETH_FRAME_SIZE]; // ethernet frame
 } RFD_t;
 
@@ -136,12 +136,12 @@ static inline void __eth_setup_RFD(RFD_t* RFD) {
     RFD->link_addr = 0;
 
     // zero the EOF, F, and COUNT bits
-    RFD->count_byte = 0;
+    RFD->count_word = 0;
 
     // set the size byte
     // make sure size is such that bits 6 and 7 are 0
-    RFD->size_byte = ETH_FRAME_SIZE;
-    RFD->size_byte &= 0b00111111;
+    RFD->size_word = ETH_FRAME_SIZE;
+    RFD->size_word &= ~(0b11 << 14);
 }
 
 // request a slab of size 'len' of the CBL to place an action command
@@ -320,7 +320,18 @@ static void __eth_isr(int vector, int code) {
         // problem with the callback taking too long won't cause an RNR (RU has no space in RFA!)
         // alternatively just make the RFA bigger (e.g. more than one RFD, probably a good idea in the long run)
         if(__eth_rx_callback != NULL) {
-            uint16_t actual_count = (RFA->count_byte & 0b00111111); // ignore top 2 bits
+            uint16_t actual_count = (RFA->count_word & ~(0b11 << 14)); // ignore top 2 bits
+
+
+            #ifdef ETH_DEBUG
+            __cio_printf("\n");
+            for(unsigned int i = 0; i < actual_count; i++) {
+            __cio_printf("%02x ", RFA->frame[i]);
+            }
+            __cio_printf("\n");
+            #endif
+
+
             if(RFA->status_word & ETH_RFD_STATUS_OK) {
                 __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
             } else {
@@ -329,14 +340,6 @@ static void __eth_isr(int vector, int code) {
        }
 
 
-        #ifdef ETH_DEBUG
-        uint16_t actual_count = (RFA->count_byte & 0b00111111);
-        __cio_printf("\n");
-        for(unsigned int i = 0; i < actual_count; i++) {
-        __cio_printf("%02x ", RFA->frame[i]);
-        }
-        __cio_printf("\n");
-        #endif
 
         // reset the RFD in the RFA
         __eth_setup_RFD(RFA);

@@ -17,7 +17,7 @@ typedef struct {
 packet_t _arp_out;
 
 void __arp_respond(const uint8_t* data, uint16_t len, uint32_t ip) {
-    if(len != sizeof(ARP_packet_t)) {
+    if(len < sizeof(ARP_packet_t)) { // can have extra padding on the end
         __cio_printf("arp size mismatch\n");
         return;
     }

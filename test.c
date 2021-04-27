@@ -13,17 +13,34 @@
 // test callback for now
 // only responds to ARPs
 void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
-    __cio_printf("rx callback\n");
-    if(count < sizeof(LINKhdr_t) + sizeof(ARP_packet_t)) {
-        __cio_printf("packet too small\n");
+    // __cio_printf("rx callback\n");
+    // if(count < sizeof(LINKhdr_t) + sizeof(ARP_packet_t)) {
+    //     __cio_printf("packet too small\n");
+    //     return;
+    // }
+    //
+    // uint16_t ethertype = ((uint16_t*)data)[6];
+    // if(ethertype == ARP_ETHERTYPE) {
+    //     __cio_printf("arp respond\n");
+    //     __arp_respond(data + sizeof(LINKhdr_t), count - sizeof(LINKhdr_t) - 4, _ip_addr);
+    // }
+    __cio_printf("\n\ncount: %04x\n", count);
+    msg_t temp;
+    uint8_t buff[2048];
+    temp.data = buff;
+    temp.len = 2048;
+    int ret = __link_parse_frame(&temp, count, data);
+    __cio_printf("ret: %02x\n", ret);
+    if(!ret) {
+        __cio_printf("return early rx cb\n");
         return;
     }
 
-    uint16_t ethertype = ((uint16_t*)data)[6];
-    if(ethertype == ARP_ETHERTYPE) {
-        __cio_printf("arp respond\n");
-        __arp_respond(data + sizeof(LINKhdr_t), count - sizeof(LINKhdr_t) - 4, _ip_addr);
+    __cio_printf("len: %04x\n", temp.len);
+    for(unsigned int i = 0; i < temp.len; i++) {
+        __cio_printf("%c", temp.data[i]);
     }
+    __cio_printf("\n");
 }
 
 void __packet_test(void) {

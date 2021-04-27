@@ -139,8 +139,8 @@ void _init( void ) {
     _clk_init();
     _sio_init();
 
-    _socket_init();
     __eth_init();
+    _socket_init();
 
     // TESTING
     __packet_test();

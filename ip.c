@@ -79,6 +79,7 @@ int __ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     NETipv4hdr_t* hdr = (NETipv4hdr_t*)data;
 
     if(hdr->dst_addr != _ip_addr) {
+        __cio_printf("ipv4 err\n");
         return 0; // packet wasn't meant for us, oopsies
     }
 
