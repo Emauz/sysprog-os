@@ -303,14 +303,18 @@ static void __eth_isr(int vector, int code) {
     #endif
 
     if(status & ETH_CX_TNO_MASK) { // CX/TNO interrupt
+        #ifdef ETH_DEBUG
         __cio_printf("CX_TNO\n");
+        #endif
         // shouldn't happen if we never set the I bit
         // we're not using the TNO functionality of the 82557
         // ignore it and move on
     }
 
     if(status & ETH_FR_MASK) { // frame ready interrupt
+        #ifdef ETH_DEBUG
         __cio_printf("FR INT\n");
+        #endif
         // should be called everytime the RU receives a frame
 
         // call the rx callback function with a pointer to the data section
@@ -350,7 +354,9 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_CNA_MASK) { // CU not active interrupt
+        #ifdef ETH_DEBUG
         __cio_printf("CNA INT\n");
+        #endif
         // should happen when tx/loadaddr (or any CU command) finishes
 
         // uint16_t status = *((uint16_t*)CBL_start);
@@ -386,19 +392,25 @@ static void __eth_isr(int vector, int code) {
     }
 
     if(status & ETH_RNR_MASK) { // RU no resources
+        #ifdef ETH_DEBUG
         __cio_printf("RNR INT\n");
+        #endif
         // this hopefully never happens, but if it does the RU has no more
         // memory to place frames and the frame was dropped :(
     }
 
     if(status & ETH_MDI_MASK) { // MDI interrupt (media data interface)
+        #ifdef ETH_DEBUG
         __cio_printf("MDI INT\n");
+        #endif
         // not implemented
         // should never happen
     }
 
     if(status & ETH_SWI_MASK) { // software interrupt
+        #ifdef ETH_DEBUG
         __cio_printf("SWI int\n");
+        #endif
         // not used anywhere
         // should never happen
     }

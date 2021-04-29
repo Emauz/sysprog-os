@@ -18,42 +18,56 @@ packet_t _arp_out;
 
 void __arp_respond(const uint8_t* data, uint16_t len, uint32_t ip) {
     if(len < sizeof(ARP_packet_t)) { // can have extra padding on the end
+        #ifdef ARP_DEBUG
         __cio_printf("arp size mismatch\n");
+        #endif
         return;
     }
 
     ARP_packet_t* packet = (ARP_packet_t*)data;
 
     if(packet->htype != ETH_HTYPE) {
+        #ifdef ARP_DEBUG
         __cio_printf("arp htype mismatch\n");
+        #endif
         return;
     }
 
     if(packet->ptype != IPV4_PTYPE) {
+        #ifdef ARP_DEBUG
         __cio_printf("arp ptype mismatch\n");
+        #endif
         return;
     }
 
     if(packet->hlen != ETH_HLEN) {
+        #ifdef ARP_DEBUG
         __cio_printf("arp hlen mismatch\n");
+        #endif
         return;
     }
 
     if(packet->plen != IPV4_PLEN) {
+        #ifdef ARP_DEBUG
         __cio_printf("arp plen mismatch\n");
+        #endif
         return;
     }
 
     // only reply to requests
     // TODO do something else if we get a reply?
     if(packet->oper != ARP_OP_REQ) {
+        #ifdef ARP_DEBUG
         __cio_printf("arp oper mismatch\n");
+        #endif
         return;
     }
 
     // they're not looking for our ip
     if(packet->tpa != ip) {
+        #ifdef ARP_DEBUG
         __cio_printf("arp ip mismatch\n");
+        #endif
         return;
     }
 

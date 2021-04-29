@@ -47,6 +47,8 @@
 ** netsend - send a message over the network
 **
 ** usage:	netsend(msg)
+**          msg should have src_port, dst_port, dst_addr, dst_MAC, len, and data
+**          filled in. The function will return when the transmit has been completed.
 **
 ** @param msg   the message to send
 **
@@ -58,11 +60,16 @@ void netsend( msg_t* msg );
 ** netrecv - receive a message over the network
 **
 ** usage:	netrecv(msg)
+**          msg should have src_port, dst_port, src_addr, len, and data filled in.
+**          len refers to the size of data.
+**          src_addr and src_MAC will be automatically filled in.
+**          When the receive is complete the function will return and the received
+**          data will be written to msg.data, msg.len will be updated to be the
+**          actual number of bytes the packet was, only up to the len the function
+**          is called with bytes will be placed in data.
+**
 **
 ** @param msg   the structure to place the received message in
-** NOTE: msg.len will be updated to be the length of the packet received,
-**       even if larger than 'data'. Only up to the original len bytes will
-**       be copied to 'data' however.
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
@@ -84,7 +91,7 @@ void setip( uint32_t addr );
 **
 ** usage:	setMAC(addr)
 **
-** @param addr  the 48-but MAC address in network (big endian) order
+** @param addr  the 48-but MAC address in network (big endian) order as an array
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
