@@ -63,7 +63,6 @@ int __link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     if(sizeof(LINKhdr_t) > len) {
         return 0;
     }
-    __cio_printf("link parse\n");
 
     LINKhdr_t* hdr = (LINKhdr_t*)data;
     msg->dst_MAC = (uint64_t)hdr->dst_mac[0] << 40;
@@ -81,7 +80,6 @@ int __link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     msg->src_MAC |= (uint64_t)hdr->src_mac[5];
 
     if(hdr->ethertype == IPV4_ETHERTYPE) {
-        __cio_printf("link -> ipv4\n");
         return __ipv4_parse_frame(msg, len - sizeof(LINKhdr_t), data + sizeof(LINKhdr_t));
     } else if(hdr->ethertype == ARP_ETHERTYPE) {
         __arp_respond(data + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), _ip_addr);

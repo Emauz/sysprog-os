@@ -54,7 +54,7 @@
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
-void netsend( msg_t* msg );
+int netsend( msg_t* msg );
 
 /**
 ** netrecv - receive a message over the network
@@ -72,7 +72,7 @@ void netsend( msg_t* msg );
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
-void netrecv( msg_t* msg );
+int netrecv( msg_t* msg );
 
 /**
 ** setip - set the IP address of the system
@@ -83,7 +83,7 @@ void netrecv( msg_t* msg );
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
-void setip( uint32_t addr );
+int setip( uint32_t addr );
 
 /**
 ** setMAC - set the MAC address of the system
@@ -94,7 +94,7 @@ void setip( uint32_t addr );
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
-void setMAC( uint8_t addr[6] );
+int setMAC( uint8_t addr[6] );
 
 /**
 ** exit - terminate the calling process

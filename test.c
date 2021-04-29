@@ -13,18 +13,7 @@
 // test callback for now
 // only responds to ARPs
 void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
-    // __cio_printf("rx callback\n");
-    // if(count < sizeof(LINKhdr_t) + sizeof(ARP_packet_t)) {
-    //     __cio_printf("packet too small\n");
-    //     return;
-    // }
-    //
-    // uint16_t ethertype = ((uint16_t*)data)[6];
-    // if(ethertype == ARP_ETHERTYPE) {
-    //     __cio_printf("arp respond\n");
-    //     __arp_respond(data + sizeof(LINKhdr_t), count - sizeof(LINKhdr_t) - 4, _ip_addr);
-    // }
-    __cio_printf("\n\ncount: %04x\n", count);
+    __cio_printf("count: %04x\n", count);
     msg_t temp;
     uint8_t buff[2048];
     temp.data = buff;

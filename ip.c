@@ -43,8 +43,6 @@ uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 
     NETipv4hdr_t* hdr = (NETipv4hdr_t*)buff;
 
-    __cio_printf("IP hdr: %x\n", hdr);
-
     hdr->ver_ihl = IPV4_VER_IHL;
     hdr->dscp_ecn = 0x00;
     hdr->id = 0;
@@ -79,7 +77,6 @@ int __ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     NETipv4hdr_t* hdr = (NETipv4hdr_t*)data;
 
     if(hdr->dst_addr != _ip_addr) {
-        __cio_printf("ipv4 err\n");
         return 0; // packet wasn't meant for us, oopsies
     }
 

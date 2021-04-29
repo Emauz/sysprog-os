@@ -20,8 +20,6 @@ uint16_t __udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 
     UDPhdr_t* hdr = (UDPhdr_t*)buff;
 
-    __cio_printf("UDP header: %x\n", hdr);
-
     hdr->src_port = msg->src_port;
     hdr->dst_port = msg->dst_port;
     hdr->len[0] = (sizeof(UDPhdr_t) + msg->len) >> 8;
@@ -38,7 +36,6 @@ int __udp_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     if(sizeof(UDPhdr_t) > len) {
         return 0; // too small
     }
-    __cio_printf("udp parse\n");
 
     UDPhdr_t* hdr = (UDPhdr_t*)data;
 
@@ -53,9 +50,7 @@ int __udp_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     size |= (hdr->len[0] << 8);
     size -= sizeof(UDPhdr_t);
 
-    __cio_printf("UDP size: %04x, len: %04x\n", size, len);
     if(size > len - sizeof(UDPhdr_t)) {
-        __cio_printf("udp err\n");
         return 0; // packet is larger than what we stored, size should equal len minus the header size
     }
 
