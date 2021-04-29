@@ -81,6 +81,9 @@ void _socket_send(msg_t* msg) {
 
     // Add sender's PCB to the command queue (block until complete)
     assert(E_SUCCESS == _que_enque( _cmd_process_q, _current, 0 ));
+
+    // current process has been put to sleep, schedule a new one
+    _dispatch();
 }
 
 // number of processes that can be waiting on a receive at the same time
