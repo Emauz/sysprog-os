@@ -50,6 +50,9 @@ SYSCALL(sleep)
 SYSCALL(spawn)
 SYSCALL(wait)
 SYSCALL(netsend)
+SYSCALL(netrecv)
+SYSCALL(setip)
+SYSCALL(setMAC)
 
 /*
 ** This is a bogus system call; it's here so that we can test
