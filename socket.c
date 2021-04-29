@@ -126,6 +126,10 @@ static msg_t _temp_msg;
 // TODO documentation
 // wakes up all proccess waiting for this packet
 void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
+    if(status == ETH_RECV_ERR) { // TODO maybe check the packet too to alert a user there was a failure
+        return;
+    }
+
     if(!__link_parse_frame(&_temp_msg, count, data)) {
         return; // bad frame or an ARP, nothing else to do
     } // else we need to pass it to a user
@@ -138,13 +142,7 @@ void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
             // check if someone needs this packet
             // both ports and source address need to match what user said
             // everything else is filled in
-            if(node->msg->src_port != _temp_msg.src_port) {
-                continue;
-            }
             if(node->msg->dst_port != _temp_msg.dst_port) {
-                continue;
-            }
-            if(node->msg->src_addr != _temp_msg.src_addr) {
                 continue;
             }
 
@@ -152,6 +150,9 @@ void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
             node->msg->src_port = _temp_msg.src_port;
             node->msg->dst_port = _temp_msg.dst_port;
             node->msg->src_addr = _temp_msg.src_addr;
+            node->msg->dst_addr = _temp_msg.dst_addr;
+            node->msg->dst_MAC = _temp_msg.dst_MAC;
+            node->msg->src_MAC = _temp_msg.src_MAC;
 
             // we have room for the whole payload
             if(node->msg->len >= _temp_msg.len) {
