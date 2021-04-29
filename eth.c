@@ -328,9 +328,9 @@ static void __eth_isr(int vector, int code) {
 
 
             #ifdef ETH_DEBUG
-            __cio_printf("\n");
+            __cio_printf("packet: \n");
             for(unsigned int i = 0; i < actual_count; i++) {
-            __cio_printf("%02x ", RFA->frame[i]);
+                __cio_printf("%02x ", RFA->frame[i]);
             }
             __cio_printf("\n");
             #endif

@@ -60,9 +60,8 @@ void netsend( msg_t* msg );
 ** netrecv - receive a message over the network
 **
 ** usage:	netrecv(msg)
-**          msg should have src_port, dst_port, src_addr, len, and data filled in.
-**          len refers to the size of data.
-**          src_addr and src_MAC will be automatically filled in.
+**          msg should have dst_port, len, and data filled in.
+**          len refers to the size of data. All other fields will be filled in on return.
 **          When the receive is complete the function will return and the received
 **          data will be written to msg.data, msg.len will be updated to be the
 **          actual number of bytes the packet was, only up to the len the function

@@ -83,6 +83,7 @@ int __ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
         return 0; // packet wasn't meant for us, oopsies
     }
 
+    msg->dst_addr = hdr->dst_addr;
     msg->src_addr = hdr->src_addr;
 
     if(hdr->protocol == UDP_PROTOCOL) {
