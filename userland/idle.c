@@ -34,7 +34,7 @@ int idle( uint32_t arg1, uint32_t arg2 ) {
 
     for(;;) {
         DELAY(LONG);
-        write( CHAN_SIO, &ch, 1 );
+        // write( CHAN_SIO, &ch, 1 );
     }
 
     // we should never reach this point!
