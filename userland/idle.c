@@ -27,14 +27,15 @@ int idle( uint32_t arg1, uint32_t arg2 ) {
     sprint( buf, "Idle [%d] started at %d\n", me, (int32_t) now );
     cwrites( buf );
 
-    write( CHAN_SIO, &ch, 1 );
+    //write( CHAN_SIO, &ch, 1 );
 
     // idle() should never block - it must always be available
     // for dispatching when we need to pick a new current process
 
     for(;;) {
         DELAY(LONG);
-        write( CHAN_SIO, &ch, 1 );
+        // We don't want it printing stuff to console while using a chat client
+        //write( CHAN_SIO, &ch, 1 );
     }
 
     // we should never reach this point!

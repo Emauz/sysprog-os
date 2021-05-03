@@ -286,6 +286,16 @@ int init( uint32_t arg1, uint32_t arg2 ) {
 
 #endif
 
+#ifdef SPAWN_TTALK_SEND_TEST
+    // socket_test: test socket i/o
+    whom = spawn( ttalk_send_test, PRIO_STD, '?', (10 << 8) + 5 );
+    if( whom < 0 ) {
+        cwrites( "init, spawn() ttalk_send_test failed\n" );
+    }
+    swritech( ch );
+
+#endif
+
     // Users W through Z are spawned elsewhere
 
     swrites( "!\r\n\n" );
