@@ -147,7 +147,7 @@ static inline void __eth_setup_RFD(RFD_t* RFD) {
 // request a slab of size 'len' of the CBL to place an action command
 // returns the pointer to a CBL entry or NULL on no memory available
 static inline uint8_t* __eth_allocate_CBL(uint16_t len) {
-    __cio_printf("CBL_end: %04x, CBL_start: %04x, len: %04x\n", CBL_end, CBL_start, len);
+    // __cio_printf("CBL_end: %04x, CBL_start: %04x, len: %04x\n", CBL_end, CBL_start, len);
     if((CBL_end + len) > CBL_SIZE) {
         CBL_end = 0;
         // wrap around

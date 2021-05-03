@@ -69,7 +69,6 @@ static uint8_t _tx_buffer[TX_BUFF_SIZE];
 void _socket_send(msg_t* msg) {
     // create the packet
     uint16_t size = __link_add_header(_tx_buffer, TX_BUFF_SIZE, msg);
-    __cio_printf("size: %04x\n", size);
     assert( size != 0 );
 
     // queue up frame to be sent
@@ -105,8 +104,6 @@ static uint8_t _recv_free_map[NUM_RECV_PROCESSES];
 
 // TODO documentation
 void _socket_recv(msg_t* msg) {
-    __cio_printf("SOCKET RECV\n");
-
     // TODO verify data in msg_t isn't NULL so we dont segfault? maybe just dont care
     for(int i = 0; i < NUM_RECV_PROCESSES; i++) {
         if(!_recv_free_map[i]) { // 0 indicates free, 1 indicates taken
@@ -191,7 +188,6 @@ void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
 **/
 void _socket_setip(uint32_t addr) {
     _ip_addr = addr;
-    __cio_printf("ip: %04x, _ip_addr: %04x\n", addr, _ip_addr);
     RET(_current) = SOCKET_SUCCESS;
 }
 
