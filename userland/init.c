@@ -122,7 +122,7 @@ int init( uint32_t arg1, uint32_t arg2 ) {
 #endif
 
     // User H tests reparenting of orphaned children
-    
+
 #ifdef SPAWN_H
     // "userH H 4"
     whom = spawn( userH, PRIO_STD, 'H', 4 );
@@ -133,7 +133,7 @@ int init( uint32_t arg1, uint32_t arg2 ) {
 #endif
 
     // User I spawns several children, kills one, and waits for all
-    
+
 #ifdef SPAWN_I
     // "userI I"
     whom = spawn( userI, PRIO_STD, 'I', 0 );

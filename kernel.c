@@ -143,7 +143,7 @@ void _init( void ) {
     _socket_init();
 
     // TESTING
-    __packet_test();
+    // __packet_test();
 
 
     __cio_puts( "\nModule initialization complete.\n" );

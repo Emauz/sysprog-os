@@ -48,8 +48,8 @@ static queue_t _cmd_process_q = NULL;
 //     uint8_t tx_status = __eth_tx( data, len, sender_pid );
 //     assert( tx_status == ETH_SUCCESS );
 //
-//     // sleep the sending process
-//     _current->state = Sleeping;
+//     // block the sending process
+//     _current->state = Blocked;
 //
 //     // Add sender's PCB to the sending queue (block until sent)
 //     int enque_status = _que_enque( _tx_process_q, _current, 0 );
@@ -69,6 +69,7 @@ static uint8_t _tx_buffer[TX_BUFF_SIZE];
 void _socket_send(msg_t* msg) {
     // create the packet
     uint16_t size = __link_add_header(_tx_buffer, TX_BUFF_SIZE, msg);
+    __cio_printf("size: %04x\n", size);
     assert( size != 0 );
 
     // queue up frame to be sent
@@ -77,13 +78,15 @@ void _socket_send(msg_t* msg) {
     }
 
     // sleep the sending process
-    _current->state = Sleeping;
+    _current->state = Blocked;
 
     // Add sender's PCB to the command queue (block until complete)
     assert(E_SUCCESS == _que_enque( _cmd_process_q, _current, 0 ));
 
     // current process has been put to sleep, schedule a new one
     _dispatch();
+
+    return;
 }
 
 // number of processes that can be waiting on a receive at the same time
@@ -102,6 +105,8 @@ static uint8_t _recv_free_map[NUM_RECV_PROCESSES];
 
 // TODO documentation
 void _socket_recv(msg_t* msg) {
+    __cio_printf("SOCKET RECV\n");
+
     // TODO verify data in msg_t isn't NULL so we dont segfault? maybe just dont care
     for(int i = 0; i < NUM_RECV_PROCESSES; i++) {
         if(!_recv_free_map[i]) { // 0 indicates free, 1 indicates taken
@@ -110,7 +115,9 @@ void _socket_recv(msg_t* msg) {
             _recv_list[i].proc = _current;
 
             // sleep the calling proc until we get a message for it
-            _current->state = Sleeping;
+            _current->state = Blocked;
+
+            _dispatch();
             return;
         }
     }
@@ -143,6 +150,8 @@ void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
             // both ports and source address need to match what user said
             // everything else is filled in
             if(node->msg->dst_port != _temp_msg.dst_port) {
+                // __cio_printf("ports don't match!\n");
+                // __cio_printf("recv: %04x, got: %04x\n", node->msg->dst_port, _temp_msg.dst_port);
                 continue;
             }
 
@@ -182,6 +191,7 @@ void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
 **/
 void _socket_setip(uint32_t addr) {
     _ip_addr = addr;
+    __cio_printf("ip: %04x, _ip_addr: %04x\n", addr, _ip_addr);
     RET(_current) = SOCKET_SUCCESS;
 }
 
@@ -202,7 +212,7 @@ void _socket_setMAC(uint8_t addr[6]) {
         RET(_current) = SOCKET_ERR;
     }
 
-    _current->state = Sleeping;
+    _current->state = Blocked;
 
     assert(E_SUCCESS == _que_enque(_cmd_process_q, _current, 0));
 }

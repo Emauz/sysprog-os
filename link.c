@@ -19,7 +19,6 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 
     // setup header
     LINKhdr_t* hdr = (LINKhdr_t*)buff;
-    __cio_printf("LINK HEADER: %x\n", hdr);
 
     hdr->dst_mac[0] = msg->dst_MAC >> 40;
     hdr->dst_mac[1] = msg->dst_MAC >> 32;

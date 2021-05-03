@@ -53,17 +53,17 @@ pcb_t *_current;
 void _sched_init( void ) {
 
     __cio_puts( " Sched:" );
-    
+
     // allocate the ready queues
     for( int i = 0; i < N_QUEUES; ++i ) {
         _ready[i] = _que_alloc( NULL );
         // at this point, allocation failure is terminal
         assert( _ready[i] != NULL );
     }
-    
+
     // reset the "current process" pointer
     _current = NULL;
-    
+
     __cio_puts( " done" );
 }
 
@@ -87,7 +87,7 @@ void _schedule( pcb_t *pcb ) {
 
     // bad priority value causes a fault
     assert1( pcb->priority <= PRIO_LOWEST );
-    
+
     // mark the process as ready to execute
     pcb->state = Ready;
 
@@ -106,7 +106,7 @@ void _schedule( pcb_t *pcb ) {
 void _dispatch( void ) {
     pcb_t *new;
     int n;
-    
+
     // we need to loop until we find a process
     // that's eligible to execute
 
@@ -118,11 +118,11 @@ void _dispatch( void ) {
                 break;
             }
         }
-    
+
         // this should never happen - if nothing else, the
         // idle process should be on the "Deferred" queue
         assert( n < N_QUEUES );
-    
+
         // OK, we found a queue; pull the first process from it
         new = _que_deque( _ready[n] );
 
@@ -157,7 +157,7 @@ void _dispatch( void ) {
 
         _force_exit( new, Killed );
     }
-    
+
     // make this the current process
     _current = new;
 
