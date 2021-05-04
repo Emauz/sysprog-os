@@ -69,7 +69,10 @@ static uint8_t _tx_buffer[TX_BUFF_SIZE];
 void _socket_send(msg_t* msg) {
     // create the packet
     uint16_t size = __link_add_header(_tx_buffer, TX_BUFF_SIZE, msg);
-    assert( size != 0 );
+
+    if(size == 0) {
+        RET(_current) = SOCKET_ERR;
+    }
 
     // queue up frame to be sent
     if(ETH_SUCCESS != __eth_tx(_tx_buffer, size, _current->pid)) {
