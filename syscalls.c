@@ -524,19 +524,39 @@ static void _sys_netsend( uint32_t args[4] ) {
     __cio_puts("completed\n");
 }
 
-// TODO documentation
+/*
+** _sys_netrecv: receive Ethernet/IPV4/UDP message over the network
+**
+** Blocking call to receive message over the network
+** Process will be blocked until a packet has been received sent to the dst_port
+** set in msg.
+**
+** @param msg   the message to be received over the network
+*/
 static void _sys_netrecv( uint32_t args[4] ) {
     msg_t* msg = (msg_t*)args[0];
     _socket_recv(msg);
 }
 
-// TODO documentation
+/*
+** _sys_setip: set the IPv4 address of the system
+**
+**  Sets the IP address of the system
+**
+** @param addr  the 32-bit IP address in network order
+*/
 static void _sys_setip( uint32_t args[4] ) {
     __cio_printf("setip\n");
     _socket_setip(args[0]);
 }
 
-// TODO documentation
+/*
+** _sys_setMAC: set the MAC address of the system
+**
+**  Sets the MAC address of the system
+**
+** @param addr  the 48-bit MAC address in network order
+*/
 static void _sys_setMAC( uint32_t args[4] ) {
     uint8_t* mac = (uint8_t*)args[0];
 

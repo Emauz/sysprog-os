@@ -112,7 +112,7 @@ static uint8_t _recv_free_map[NUM_RECV_PROCESSES];
 **      receives a message over ethernet
 **/
 void _socket_recv(msg_t* msg) {
-    // TODO verify data in msg_t isn't NULL so we dont segfault? maybe just dont care
+    // NOTE: if the system supported memory protection we'd probably want to check that 'data' is set correctly
     for(int i = 0; i < NUM_RECV_PROCESSES; i++) {
         if(!_recv_free_map[i]) { // 0 indicates free, 1 indicates taken
             _recv_free_map[i] = 1;

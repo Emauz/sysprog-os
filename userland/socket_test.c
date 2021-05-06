@@ -21,8 +21,8 @@ int32_t socket_test( uint32_t arg1, uint32_t arg2 ) {
     msg_t message;
     message.src_port = 25565;
     message.dst_port = 25565;
-    htons("10.10.10.2", &message.dst_addr); // TODO: Test sending to a real IP
-    message.dst_MAC = 0x0; // TODO: change once ARP is working
+    htons("10.10.10.2", &message.dst_addr);
+    message.dst_MAC = 0x0;
     message.len = 23;
     message.data = (uint8_t*)"socket_test: hello world!";
 

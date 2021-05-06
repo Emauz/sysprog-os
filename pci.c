@@ -52,7 +52,6 @@ uint8_t __pci_read8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
 
     __outl(PCI_CONFIG_ADDR_PORT, address);
 
-    // TODO check if this is correct
     tmp = (uint16_t)((__inl(PCI_CONFIG_DATA_PORT) >> ((offset & 0b11) * 8)) & 0xffff);
     return (tmp);
 }
