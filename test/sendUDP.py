@@ -1,5 +1,16 @@
 #!/usr/bin/python3
-
+#
+# @file SendUDP.py
+#
+# Test program to send a UDP packet to an address/port
+#
+# usage:
+#    sendUDP.py [ip] [port]
+#
+# if IP/port is not provided 127.0.0.1 and 8080 will be used.
+#
+# @author Will Merges
+#
 import sys, socket
 
 def main(args):

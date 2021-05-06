@@ -1,7 +1,9 @@
 /*
-*   file:  eth.h
+*   @file:  eth.h
 *
 *   Intel 8255x Ethernet Device Driver header
+*
+*   @author Will Merges
 */
 #ifndef ETH_H
 #define ETH_H
