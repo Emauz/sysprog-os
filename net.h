@@ -2,7 +2,6 @@
 #define NET_H
 
 #include "common.h"
-#include "process.h"
 
 // describes a network message
 // all addresses and ports should be in network order

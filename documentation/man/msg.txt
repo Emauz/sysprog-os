@@ -1,0 +1,31 @@
+NAME
+        msg - Network Message
+
+SYNOPSIS
+        #include "net.h"
+
+DESCRIPTION
+        The msg_t structure describes an Ethernet/IPv4/UDP network
+        message needed by the netsend and netrecv system calls.
+
+        typedef struct {
+            uint16_t src_port; 
+            uint16_t dst_port;
+            uint32_t src_addr;
+            uint32_t dst_addr;
+            uint64_t dst_MAC;
+            uint64_t src_MAC;
+            uint16_t len;
+            uint8_t* data; // data buffer to read/write from
+        } msg_t;
+
+        src_port and dst_port refer to 16-bit network order UDP
+        ports. See hton16 to convert to network order.
+
+        src_addr and dst_addr are 32-bit network order IPv4 
+        addresses. See htons to convert to network order.
+
+        dst_MAC and src_MAC are 48-bit network order MAC addresses.
+        The high 16 bits should always be zero.
+
+        data is a pointer to user memory of len many bytes.

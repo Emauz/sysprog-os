@@ -36,7 +36,7 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     hdr->src_mac[3] = _eth_MAC >> 16;
     hdr->src_mac[4] = _eth_MAC >> 8;
     hdr->src_mac[5] = _eth_MAC;
-    msg->src_mac = _eth_MAC; // fill in message struct for the user
+    msg->src_MAC = _eth_MAC; // fill in message struct for the user
 
     hdr->ethertype = IPV4_ETHERTYPE;
 

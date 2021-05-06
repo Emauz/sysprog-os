@@ -1,0 +1,17 @@
+NAME
+        htons - converts IPv4 address to network order.
+
+SYNOPSIS
+        #include "common.h"
+        #include "net.h"
+
+        uint16_t htons(char* str, uint32_t* addr);
+
+DESCRIPTION
+        Converts an address given by null-terminated string str, e.g.
+        "192.168.1.1" to a 32-bit network order IPv4 address. The
+        resultant address is placed at addr.
+
+RETURN VALUE
+        On success, 1 is returned. On a conversion error 0 is
+        returned.

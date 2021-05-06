@@ -1,0 +1,14 @@
+NAME
+        hton16 - convert 16-bit data to network order
+
+SYNOPSIS
+        #include "common.h"
+        #include "net.h"
+
+        uint16_t hton16(uint16_t num);
+
+DESCRIPTION
+        Converts 16-bit num to network order and returns it.
+
+RETURN VALUE
+        The data in network order.
