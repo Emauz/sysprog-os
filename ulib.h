@@ -44,7 +44,7 @@
 // examples:  exit(n), bogus()
 
 /**
-** netsend - send a message over the network
+** netsend - send a message over ethernet
 **
 ** usage:	netsend(msg)
 **          msg should have src_port, dst_port, dst_addr, dst_MAC, len, and data
@@ -54,10 +54,10 @@
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
-int netsend( msg_t* msg );
+int32_t netsend( msg_t* msg );
 
 /**
-** netrecv - receive a message over the network
+** netrecv - receive a message over ethernet
 **
 ** usage:	netrecv(msg)
 **          msg should have dst_port, len, and data filled in.
@@ -72,7 +72,7 @@ int netsend( msg_t* msg );
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
-int netrecv( msg_t* msg );
+int32_t netrecv( msg_t* msg );
 
 /**
 ** setip - set the IP address of the system
@@ -83,7 +83,7 @@ int netrecv( msg_t* msg );
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
-int setip( uint32_t addr );
+int32_t setip( uint32_t addr );
 
 /**
 ** setMAC - set the MAC address of the system
@@ -94,7 +94,7 @@ int setip( uint32_t addr );
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */
-int setMAC( uint8_t addr[6] );
+int32_t setMAC( uint8_t addr[6] );
 
 /**
 ** exit - terminate the calling process

@@ -11,8 +11,8 @@
 #include "net.h"
 
 // return values
-#define SOCKET_SUCCESS 0
-#define SOCKET_ERR 1
+#define SOCKET_SUCCESS E_SUCCESS
+#define SOCKET_ERR E_FAILURE
 
 // Initialize the socket module
 void _socket_init( void );

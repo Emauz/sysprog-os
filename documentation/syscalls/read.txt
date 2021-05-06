@@ -1,0 +1,17 @@
+NAME
+        read - read into a buffer from a stream
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        int32_t read(int chan, void* buffer, uint32_t length);
+
+DESCRIPTION
+        read() attempts to read 'length' bytes into 'buffer' from
+        the stream specified by 'chan'. 'chan' can be either CHAN_SIO
+        or CHAN_CONS as specified in common.h.
+
+RETURN VALUE
+        On success, the number of bytes read is returned. On
+        failure, an error code specified in common.h is returned.

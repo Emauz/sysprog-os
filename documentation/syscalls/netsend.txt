@@ -1,0 +1,25 @@
+NAME
+        netsend - send a message over ethernet
+
+SYNOPSIS
+        #include "common.h"
+        #include "net.h"
+        #include "ulib.h"
+
+        int32_t netsend(msg_t* msg);
+
+DESCRIPTION
+        netsend() attempts to send a message described by 'msg' over
+        ethernet.
+
+        msg should have src_port, dst_port, dst_addr, dst_MAC, len,
+        and data set. len bytes from data will be sent from src_port 
+        to dst_port at dst_addr at dst_MAC. src_MAC and src_addr will
+        be ignored and filled in with the systems currently set IP
+        and MAC addresses.
+
+        All messages will be sent as Ethernet/UDP/IPv4 packets. 
+
+RETURN VALUE
+        On a successful send, E_SUCCESS will be returned. On failure
+        E_FAILURE will be returned.

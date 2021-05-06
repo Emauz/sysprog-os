@@ -61,10 +61,10 @@ static queue_t _cmd_process_q = NULL;
 static uint8_t _tx_buffer[TX_BUFF_SIZE];
 
 /**
-**  _socket_send - write to the network
+**  _socket_send - send over ethernet
 **
 **  implements: netsend(msg_t* msg)
-**      sends a message over the network
+**      sends a message over ethernet
 **/
 void _socket_send(msg_t* msg) {
     // create the packet
@@ -105,7 +105,12 @@ static recv_node_t _recv_list[NUM_RECV_PROCESSES];
 // indicates which indices are free in 'recv_list'
 static uint8_t _recv_free_map[NUM_RECV_PROCESSES];
 
-// TODO documentation
+/**
+**  _socket_recv - receive from ethernet
+**
+**  implements: netrec(msg_t* msg)
+**      receives a message over ethernet
+**/
 void _socket_recv(msg_t* msg) {
     // TODO verify data in msg_t isn't NULL so we dont segfault? maybe just dont care
     for(int i = 0; i < NUM_RECV_PROCESSES; i++) {
@@ -130,8 +135,11 @@ void _socket_recv(msg_t* msg) {
 static msg_t _temp_msg;
 
 // receive callback
-// TODO documentation
-// wakes up all proccess waiting for this packet
+// set as ethernet receive callback in _socket_init
+// parses a received packet, if it's an ARP request to our address, it will reply.
+// If it's a Ethernet/IPv4/UDP packet addressed to our system with a dst_port a
+// process is waiting for it will copy the data out and wake that process.
+// NOTE: will wake up ALL processes waiting for a packet to that dst_port
 void _socket_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
     if(status == ETH_RECV_ERR) { // TODO maybe check the packet too to alert a user there was a failure
         return;

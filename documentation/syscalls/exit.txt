@@ -1,0 +1,13 @@
+NAME
+        exit - terminate the calling process
+
+SYNOPSIS
+        #include "ulib.h"
+
+        void exit(int32_t status);
+
+DESCRIPTION
+        exit() terminates the calling process with 'status'.
+
+RETURN VALUE
+        exit() does not return, the process ceases to be scheduled.

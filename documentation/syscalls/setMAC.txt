@@ -1,0 +1,19 @@
+NAME
+        setMAC - set the MAC address of the system
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        int32_t setMAC(uint8_t addr[6]);
+
+DESCRIPTION
+        Sets the MAC address of the system. Any packets that are
+        not addressed to this MAC will be discarded, and all packets
+        sent will use this MAC as the source address.
+
+        addr is 6 bytes in network order.
+
+RETURN VALUE
+        On success, E_SUCCESS is returned, on failure E_FAILURE is
+        returned.

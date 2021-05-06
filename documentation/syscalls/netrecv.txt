@@ -1,0 +1,26 @@
+NAME
+        netrecv - receive a message over ethernet
+
+SYNOPSIS
+        #include "common.h"
+        #include "net.h"
+        #include "ulib.h"
+
+        int32_t netrecv(msg_t* msg);
+
+DESCRIPTION
+        netrecv() attempts to receive a message described by 'msg' 
+        over ethernet.
+
+        msg should have dst_port, len, and data set. When a packet
+        addressed to the system is received with a destination port
+        of dst_port, at most len bytes of the payload will be copied
+        to data. If more than len bytes are receive, len will be
+        updated to reflect the actual number of bytes received. All
+        other members of msg will be filled in on return.
+
+        Valid messages to receive are Ethernet/UDP/IPv4 messages.
+
+RETURN VALUE
+        On a successful receive, E_SUCCESS will be returned. 
+        On failure E_FAILURE will be returned.

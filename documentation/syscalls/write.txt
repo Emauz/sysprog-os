@@ -1,0 +1,17 @@
+NAME
+        write - write from a buffer to a stream
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        int32_t write(int chan, void* buffer, uint32_t length);
+
+DESCRIPTION
+        write() attempts to write 'length' bytes from 'buffer' into
+        the stream specified by 'chan'. 'chan' can be either CHAN_SIO
+        or CHAN_CONS as specified in common.h.
+
+RETURN VALUE
+        On success, the number of bytes written is returned. On
+        failure, an error code specified in common.h is returned.
