@@ -1,9 +1,9 @@
 driver interface:
 
 
-__eth_init()
-__eth_setaddr(uint32_t ip_addr) // blocking
-__eth_transmit(uint8_t* packet, size_t len) // takes process off the ready queue until sent
+_eth_init()
+_eth_setaddr(uint32_t ip_addr) // blocking
+_eth_transmit(uint8_t* packet, size_t len) // takes process off the ready queue until sent
 // received packets get queued and then wake up higher layers to deal with it
 
 

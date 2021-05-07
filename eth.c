@@ -113,23 +113,23 @@ RFD_t* RFA;
 
 
 // function to be called when a command is complete, returns the id for whatever command finished
-void (*__eth_cmd_callback)(uint16_t id, uint16_t status) = NULL;
+void (*_eth_cmd_callback)(uint16_t id, uint16_t status) = NULL;
 
-void __eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status)) {
-    __eth_cmd_callback = callback;
+void _eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status)) {
+    _eth_cmd_callback = callback;
 }
 
 // function to be called when a frame is received
-void (*__eth_rx_callback)(uint16_t status, const uint8_t* data, uint16_t count);
+void (*_eth_rx_callback)(uint16_t status, const uint8_t* data, uint16_t count);
 
-void __eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* data, uint16_t count)) {
-    __eth_rx_callback = callback;
+void _eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* data, uint16_t count)) {
+    _eth_rx_callback = callback;
 }
 
 // setup a receive frame descriptor
 // sets it as the last RFD in the RFA
 // uses simple memory mode
-static inline void __eth_setup_RFD(RFD_t* RFD) {
+static inline void _eth_setup_RFD(RFD_t* RFD) {
     // setup the command word
     RFD->cmd_word = 0;
     RFD->cmd_word |= ETH_RFD_CMD_EL; // set the EL bit to say this is the last RFD in the RFA
@@ -149,7 +149,7 @@ static inline void __eth_setup_RFD(RFD_t* RFD) {
 
 // request a slab of size 'len' of the CBL to place an action command
 // returns the pointer to a CBL entry or NULL on no memory available
-static inline uint8_t* __eth_allocate_CBL(uint16_t len) {
+static inline uint8_t* _eth_allocate_CBL(uint16_t len) {
     // __cio_printf("CBL_end: %04x, CBL_start: %04x, len: %04x\n", CBL_end, CBL_start, len);
     if((CBL_end + len) > CBL_SIZE) {
         CBL_end = 0;
@@ -169,7 +169,7 @@ static inline uint8_t* __eth_allocate_CBL(uint16_t len) {
 }
 
 // allocate a command node
-static inline cmd_node_t* __eth_allocate_CMD(void) {
+static inline cmd_node_t* _eth_allocate_CMD(void) {
     for(int i = 0; i < MAX_COMMANDS; i++) {
         if(free_commands[i] == 0) { // we found a free index!
             free_commands[i] = 1;
@@ -182,7 +182,7 @@ static inline cmd_node_t* __eth_allocate_CMD(void) {
 
 
 // internal address should be 48 bits, if it's not an error will be returned
-uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
+uint8_t _eth_loadaddr(uint64_t addr, uint16_t id) {
     if(addr & ((uint64_t)0xFF << 48)) {
         // address is over 48 bits
         return ETH_TOO_LARGE;
@@ -192,7 +192,7 @@ uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
     _eth_MAC = addr;
 
     // allocate space on the CBL
-    AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)__eth_allocate_CBL(sizeof(AddrSetupActionCmd_t));
+    AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)_eth_allocate_CBL(sizeof(AddrSetupActionCmd_t));
     if(ptr == NULL) {
         #ifdef ETH_DEBUG
         __cio_printf("CBL alloc fail\n");
@@ -213,7 +213,7 @@ uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
     ptr->IA_addr_1 = addr >> 40;
 
     // create a command node
-    cmd_node_t* cmd = __eth_allocate_CMD();
+    cmd_node_t* cmd = _eth_allocate_CMD();
     if(cmd == NULL) {
         #ifdef ETH_DEBUG
         __cio_printf("CMD alloc fail\n");
@@ -234,7 +234,7 @@ uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
         // start it immediately
         CU_BUSY = 1;
         current_cmd = cmd;
-        __eth_CU_start((uint8_t*)ptr);
+        _eth_CU_start((uint8_t*)ptr);
     }
 
     return ETH_SUCCESS;
@@ -242,14 +242,14 @@ uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
 
 // start a transmit command in simple mode
 // len must be 14 bits max
-uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
+uint8_t _eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     // check len is only 14 bits
     if((len >> 14) != 0) {
         return ETH_TOO_LARGE;
     }
 
     // allocate space on the CBL
-    uint8_t* ptr = __eth_allocate_CBL(sizeof(TxActionCmd_t) + len);
+    uint8_t* ptr = _eth_allocate_CBL(sizeof(TxActionCmd_t) + len);
     if(ptr == NULL) {
         #ifdef ETH_DEBUG
         __cio_printf("CBL alloc fail\n");
@@ -272,7 +272,7 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
     __memcpy(TxCB + 1, data, len);
 
     // create a command node
-    cmd_node_t* cmd = __eth_allocate_CMD();
+    cmd_node_t* cmd = _eth_allocate_CMD();
     if(cmd == NULL) {
         #ifdef ETH_DEBUG
         __cio_printf("CMD alloc fail\n");
@@ -293,14 +293,14 @@ uint8_t __eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
         // start it immediately
         CU_BUSY = 1;
         current_cmd = cmd;
-        __eth_CU_start(ptr);
+        _eth_CU_start(ptr);
     }
 
     return ETH_SUCCESS;
 }
 
 
-static void __eth_isr(int vector, int code) {
+static void _eth_isr(int vector, int code) {
     // only care about the high byte of the status word (STAT/ACK)
     uint8_t status = __inb(eth.CSR_IO_BA + ETH_SCB_STATUS_WORD + 1);
 
@@ -336,7 +336,7 @@ static void __eth_isr(int vector, int code) {
         // TODO maybe copy out the frame somewhere first and reset the RFD before calling the callback
         // problem with the callback taking too long won't cause an RNR (RU has no space in RFA!)
         // alternatively just make the RFA bigger (e.g. more than one RFD, probably a good idea in the long run)
-        if(__eth_rx_callback != NULL) {
+        if(_eth_rx_callback != NULL) {
             uint16_t actual_count = (RFA->count_word & ~(0b11 << 14)); // ignore top 2 bits
 
             #ifdef ETH_DEBUG
@@ -349,17 +349,17 @@ static void __eth_isr(int vector, int code) {
 
 
             if(RFA->status_word & ETH_RFD_STATUS_OK) {
-                __eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
+                _eth_rx_callback(ETH_SUCCESS, RFA->frame, actual_count);
             } else {
-                __eth_rx_callback(ETH_RECV_ERR, RFA->frame, actual_count);
+                _eth_rx_callback(ETH_RECV_ERR, RFA->frame, actual_count);
             }
        }
 
         // reset the RFD in the RFA
-        __eth_setup_RFD(RFA);
+        _eth_setup_RFD(RFA);
 
         // restart the RU
-        __eth_RU_start((uint8_t*)RFA);
+        _eth_RU_start((uint8_t*)RFA);
     }
 
     if(status & ETH_CNA_MASK) { // CU not active interrupt
@@ -372,12 +372,12 @@ static void __eth_isr(int vector, int code) {
         // __cio_printf("cmd stat: %04x\n", status);
 
         // call the callback if it's set
-        if(__eth_cmd_callback != NULL) {
+        if(_eth_cmd_callback != NULL) {
             uint8_t status_word_hi = CBL[current_cmd->CBL_index + 1];
             if(status_word_hi & ETH_ACTION_CMD_STATUS_OK) {
-                __eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
+                _eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
             } else {
-                __eth_cmd_callback(current_cmd->id, ETH_CMD_FAIL);
+                _eth_cmd_callback(current_cmd->id, ETH_CMD_FAIL);
             }
         }
 
@@ -392,7 +392,7 @@ static void __eth_isr(int vector, int code) {
         // if we have another command to run we should do it
         if(_que_length(_cu_waiting)) {
             current_cmd = _que_deque(_cu_waiting);
-            __eth_CU_start(&CBL[current_cmd->CBL_index]);
+            _eth_CU_start(&CBL[current_cmd->CBL_index]);
         } else {
             current_cmd = NULL;
             // set the CU to not busy
@@ -431,7 +431,7 @@ static void __eth_isr(int vector, int code) {
 }
 
 
-void __eth_init(void) {
+void _eth_init(void) {
     __cio_puts(" Eth:");
 
     // find the device on the PCI bus
@@ -446,7 +446,7 @@ void __eth_init(void) {
     // setup RFA
     RFA = (RFD_t*)RFA_data;
     RFA += ((uint32_t)RFA) % 16; // 16-byte align the RFA
-    __eth_setup_RFD(RFA);
+    _eth_setup_RFD(RFA);
 
     // setup command space
     __memset(free_commands, MAX_COMMANDS, 0x0);
@@ -480,16 +480,16 @@ void __eth_init(void) {
     __delay(100); // this delay is longer than needed
 
     // disable interrupts
-    __eth_disable_int();
+    _eth_disable_int();
 
     // install the ISR on the correct vector number from the PCI config register
     // PIC interrupt line given by int_line from PCI, add base offset vector number of PIC to it (0x20)
-    __install_isr(eth_pci.int_line + 0x20, &__eth_isr); // magic vector number
+    __install_isr(eth_pci.int_line + 0x20, &_eth_isr); // magic vector number
 
     // use linear addressing
     // we can assume CU and RU are idle since we just bonked the card
-    __eth_load_CU_base(0x0);
-    __eth_load_RU_base(0x0);
+    _eth_load_CU_base(0x0);
+    _eth_load_RU_base(0x0);
 
     // TODO send config command?
     // if we do, we should set the NSAI bit in byte 10 of the 82557 config map
@@ -502,10 +502,10 @@ void __eth_init(void) {
     // and every ISR copy out the ethernet frame somewhere (call an RxCallback)
     // and then reset the frame, make sure to check status to send with the callback
     // the interrupt generated should be FR
-    __eth_RU_start((uint8_t*)RFA);
+    _eth_RU_start((uint8_t*)RFA);
 
     // re-enable interrupts
-    __eth_enable_int();
+    _eth_enable_int();
 
     __cio_puts(" done");
 }
@@ -513,17 +513,17 @@ void __eth_init(void) {
 
 // disable interrupts
 // change M bit in SCB command word MSB
-void __eth_disable_int(void) {
+void _eth_disable_int(void) {
     __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD + 1, 0b1);
 }
 
 // enable interrupts w/ M bit in SCB command word MSB
-void __eth_enable_int(void) {
+void _eth_enable_int(void) {
     __outb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD + 1, 0b0);
 }
 
 // load command unit base addr.
-void __eth_load_CU_base(uint32_t base_addr) {
+void _eth_load_CU_base(uint32_t base_addr) {
     // wait for the last command to be accepted
     uint8_t cmd_lsb =  __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD);
     while(cmd_lsb) {
@@ -536,7 +536,7 @@ void __eth_load_CU_base(uint32_t base_addr) {
 }
 
 // load receive unit base
-void __eth_load_RU_base(uint32_t base_addr) {
+void _eth_load_RU_base(uint32_t base_addr) {
     // wait for the last command to be accepted
     uint8_t cmd_lsb =  __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD);
     while(cmd_lsb) {
@@ -549,7 +549,7 @@ void __eth_load_RU_base(uint32_t base_addr) {
 }
 
 // command unit start
-void __eth_CU_start(uint8_t* CBL_addr) {
+void _eth_CU_start(uint8_t* CBL_addr) {
     // wait for the last command to be accepted
     uint8_t cmd_lsb =  __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD);
     while(cmd_lsb) {
@@ -562,7 +562,7 @@ void __eth_CU_start(uint8_t* CBL_addr) {
 }
 
 // receive unit start
-void __eth_RU_start(uint8_t* RFA_addr) {
+void _eth_RU_start(uint8_t* RFA_addr) {
     // technically we don't have to wait for this since we're commanding the RU unit
     // wait for the last command to be accepted
     uint8_t cmd_lsb =  __inb(eth.CSR_IO_BA + ETH_SCB_CMD_WORD);

@@ -103,5 +103,5 @@ void __arp_respond(const uint8_t* data, uint16_t len, uint32_t ip) {
     _arp_out.eth.src_mac[5] = _eth_MAC;
 
     // send it
-    __eth_tx((uint8_t*)&_arp_out, sizeof(ARP_packet_t) + sizeof(LINKhdr_t), 0);
+    _eth_tx((uint8_t*)&_arp_out, sizeof(ARP_packet_t) + sizeof(LINKhdr_t), 0);
 }

@@ -34,7 +34,7 @@ void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
 
 void __packet_test(void) {
     htons("10.0.2.15", &_ip_addr);
-    __eth_set_rx_callback(&rx_callback);
+    _eth_set_rx_callback(&rx_callback);
 
     uint8_t buff[2000];
     msg_t msg;
@@ -55,7 +55,7 @@ void __packet_test(void) {
     //     }
     // }
 
-    __eth_tx(buff, size, 0);
+    _eth_tx(buff, size, 0);
 }
 
 void __pci_test(void) {

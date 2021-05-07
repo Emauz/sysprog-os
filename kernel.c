@@ -139,7 +139,7 @@ void _init( void ) {
     _clk_init();
     _sio_init();
 
-    __eth_init();
+    _eth_init();
     _socket_init();
 
     // TESTING

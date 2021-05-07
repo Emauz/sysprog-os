@@ -45,7 +45,7 @@ static queue_t _cmd_process_q = NULL;
 //     pid_t sender_pid = _current->pid;
 //
 //     // queue up frame to be sent
-//     uint8_t tx_status = __eth_tx( data, len, sender_pid );
+//     uint8_t tx_status = _eth_tx( data, len, sender_pid );
 //     assert( tx_status == ETH_SUCCESS );
 //
 //     // block the sending process
@@ -75,7 +75,7 @@ void _socket_send(msg_t* msg) {
     }
 
     // queue up frame to be sent
-    if(ETH_SUCCESS != __eth_tx(_tx_buffer, size, _current->pid)) {
+    if(ETH_SUCCESS != _eth_tx(_tx_buffer, size, _current->pid)) {
         RET(_current) = SOCKET_ERR;
     }
 
@@ -215,7 +215,7 @@ void _socket_setMAC(uint8_t addr[6]) {
     mac |= (uint64_t)addr[4] << 8;
     mac |= (uint64_t)addr[5];
 
-    if(ETH_SUCCESS != __eth_loadaddr(mac, _current->pid)) {
+    if(ETH_SUCCESS != _eth_loadaddr(mac, _current->pid)) {
         RET(_current) = SOCKET_ERR;
     }
 
@@ -267,6 +267,6 @@ void _socket_init( void ) {
     _cmd_process_q = _que_alloc( NULL );
 
     // set NIC callbacks
-    __eth_set_cmd_callback( _socket_cmd_cb );
-    __eth_set_rx_callback( _socket_recv_cb );
+    _eth_set_cmd_callback( _socket_cmd_cb );
+    _eth_set_rx_callback( _socket_recv_cb );
 }
