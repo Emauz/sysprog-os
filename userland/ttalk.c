@@ -64,6 +64,8 @@ int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
     write( CHAN_SIO, "tigertalk waiting to recieve message\r\n", 38 );
 
     // set our MAC
+    uint8_t mac[6] = {0x00, 0x00, 0xDE, 0xAD, 0xBE, 0xEF}; // d3adb33f
+    setMAC(mac);
 
     // set our host IP
     uint32_t source_addr;
