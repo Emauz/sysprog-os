@@ -90,7 +90,7 @@ int32_t setip( uint32_t addr );
 **
 ** usage:	setMAC(addr)
 **
-** @param addr  the 48-but MAC address in network (big endian) order as an array
+** @param addr  the 48-bit MAC address in network (big endian) order as an array
 **
 ** @return  the status of the command SOCKET_ERR or SOCKET_SUCCESS
 */

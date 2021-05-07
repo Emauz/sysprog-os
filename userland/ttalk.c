@@ -9,7 +9,7 @@
 #define DATA_BUFFER_SIZE 256
 
 #define OUR_IP "10.0.2.15"
-#define THEIR_IP "10.0.2.16"
+#define THEIR_IP "10.0.0.0"
 #define TTALK_PORT 79
 
 /*
@@ -21,10 +21,10 @@
 void send_msg( char *msg, int32_t len ) {
     // hard code the message to be sent
     msg_t message;
-    message.src_port = TTALK_PORT;
-    message.dst_port = TTALK_PORT; 
+    message.src_port = hton16(TTALK_PORT);
+    message.dst_port = hton16(TTALK_PORT);
     htons(THEIR_IP, &message.dst_addr); // TODO: Test sending to a real IP
-    message.dst_MAC = 0xffffffffffff; 
+    message.dst_MAC = 0x000068f728688cec;
     message.len = len;
     message.data = (uint8_t*)msg;
 
@@ -33,9 +33,6 @@ void send_msg( char *msg, int32_t len ) {
 }
 
 void recv_and_print( void ) {
-    // set host mac
-    uint8_t mac[6] = { 0xFC, 0xDD, 0xDE, 0xAD, 0xBE, 0xEF };
-    setMAC(mac);
     // construct message structure to recieve into
     uint8_t data_buffer[DATA_BUFFER_SIZE];
     msg_t message;
@@ -63,7 +60,8 @@ void recv_and_print( void ) {
 */
 int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
     // announce our presence
-    write( CHAN_SIO, "TigerTalk waiting to recieve message\r\n", 38 );
+    //write( CHAN_SIO, "TigerTalk waiting to recieve message\r\n", 38 );
+    write( CHAN_SIO, "tigertalk waiting to recieve message\r\n", 38 );
 
     // set our host IP
     uint32_t source_addr;
@@ -71,7 +69,7 @@ int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
     setip(source_addr);
 
     // test recieve and print to console I/O
-    // recv_and_print();
+    //recv_and_print();
     
     
 
@@ -90,7 +88,9 @@ int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
             write( CHAN_CONS, "\nTigerTalk sending message\n", 27 );
             write( CHAN_CONS, message, message_bytes);
             send_msg(message, message_bytes);
-            buf = {0};
+            // reset message buffer
+            message[0] = NULL;
+            message_bytes = 0;
         }
         // append read character to full message
         else {

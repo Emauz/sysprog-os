@@ -36,7 +36,7 @@ eth_dev_t eth;
 uint8_t CU_BUSY = 0; // CU initializes to idle
 
 // MAC initializes to broadcast address on reset
-uint64_t _eth_MAC = 0xFFFFFFFFFFFF;
+uint64_t _eth_MAC = 0x000068f728688ced;
 
 #define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
