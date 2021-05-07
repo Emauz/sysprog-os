@@ -1,7 +1,9 @@
 /*
-*   file:  eth.c
+*   @file   transport.h
 *
-*   Intel 8255x Ethernet Device Driver header
+*   Transport layer network header (UDP) implementation
+*
+*   @author Sarah Strickman & Will Merges
 */
 #include "transport.h"
 #include "common.h"

@@ -1,7 +1,9 @@
 /*
-*   file:  ip.c
+*   @file   ip.c
 *
-*   IPv4 header
+*   IPv4 network header implementation
+*
+*   @author Sarah Strickman & Will Merges
 */
 #include "eth.h"
 #include "link.h"

@@ -1,7 +1,9 @@
 /*
-*   file:  transport.h
+*   @file   transport.h
 *
-*   Transport Later (TL) header file
+*   Transport layer network header (UDP) declarations
+*
+*   @author Sarah Strickman & Will Merges
 */
 #ifndef TL_H
 #define TL_H

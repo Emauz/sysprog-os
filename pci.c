@@ -1,11 +1,14 @@
 /*
-*   file: pci.c
+*   @file    pci.c
 *
-*   PCI bus access functions
+*   PCI confifuration access implementations
+*
+*   @author Will Merges
 */
 #include "pci.h"
 #include "klib.h"
 
+// read 16 bits from PCI configurationion space
 // (almost) directly from OS dev wiki
 // https://wiki.osdev.org/PCI
 uint16_t __pci_read16(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
@@ -27,6 +30,7 @@ uint16_t __pci_read16(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     return (tmp);
 }
 
+// read 32
 uint32_t __pci_read32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     uint32_t address;
     uint32_t lbus  = (uint32_t)bus;
@@ -40,6 +44,7 @@ uint32_t __pci_read32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     return __inl(PCI_CONFIG_DATA_PORT);
 }
 
+// read 8
 uint8_t __pci_read8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     uint32_t address;
     uint32_t lbus  = (uint32_t)bus;
@@ -56,6 +61,7 @@ uint8_t __pci_read8(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
     return (tmp);
 }
 
+// write 32
 void __pci_write32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint32_t data) {
     uint32_t address;
     uint32_t lbus  = (uint32_t)bus;
@@ -69,6 +75,8 @@ void __pci_write32(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint
     __outl(PCI_CONFIG_DATA_PORT, data);
 }
 
+// find a device with matching vendor and device ID's
+// fill in pci_dev_t information
 int __pci_find_device(pci_dev_t* dev, uint16_t vendorID, uint16_t deviceID) {
     for(int bus = 0; bus < 256; bus++) {
         for(int slot = 0; slot < 32; slot++) {

@@ -1,7 +1,7 @@
 /*
-*   @file:  eth.h
+*   @file   eth.h
 *
-*   Intel 8255x Ethernet Device Driver header
+*   Intel 8255x Ethernet Device Driver declarations
 *
 *   @author Will Merges
 */

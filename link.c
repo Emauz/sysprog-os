@@ -1,7 +1,9 @@
 /*
-*   file:  link.c
+*   @file   link.c
 *
-*   ethernet frame header
+*   Link layer network header implementation
+*
+*   @author Sarah Strickman & Will Merges
 */
 #include "link.h"
 #include "ip.h"

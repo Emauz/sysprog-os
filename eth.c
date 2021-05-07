@@ -1,17 +1,20 @@
 /*
-*   file:  eth.c
+*   @file   eth.c
 *
-*   Intel 8255x Ethernet Device Driver header
+*   Intel 8255x Ethernet Device Driver Implementations
 *
-*   CU = command unit
-*   RU = receive unit
-*   CBL = command block list (used by the CU)
-*   RFA = receive frame area (used by RU)
-*   RFD = receive frame desciptor (contained by the RFA)
-*   IA = individual address
+*   Acronyms:
+*     CU = command unit
+*     RU = receive unit
+*     CBL = command block list (used by the CU)
+*     RFA = receive frame area (used by RU)
+*     RFD = receive frame desciptor (contained by the RFA)
+*     IA = individual address
 *
 *   Written specifically for the Intel 82557 (does not include more advanced features)
 *   Memory modes for the CBL and RFA are both simple mode (not flexible)
+*
+*   @author Will Merges
 */
 #include "eth.h"
 #include "pci.h"

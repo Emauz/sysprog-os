@@ -1,3 +1,10 @@
+/*
+*   @file   net.h
+*
+*   Networking structures and inline helper functions
+*
+*   @author Will Merges
+*/
 #ifndef NET_H
 #define NET_H
 
