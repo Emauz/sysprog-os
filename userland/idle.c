@@ -35,7 +35,7 @@ int idle( uint32_t arg1, uint32_t arg2 ) {
     for(;;) {
         DELAY(LONG);
         // We don't want it printing stuff to console while using a chat client
-        // write( CHAN_SIO, &ch, 1 );
+        write( CHAN_CONS, &ch, 1 );
     }
 
     // we should never reach this point!
