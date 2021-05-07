@@ -546,7 +546,6 @@ static void _sys_netrecv( uint32_t args[4] ) {
 ** @param addr  the 32-bit IP address in network order
 */
 static void _sys_setip( uint32_t args[4] ) {
-    __cio_printf("setip\n");
     _socket_setip(args[0]);
 }
 

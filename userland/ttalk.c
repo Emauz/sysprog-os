@@ -36,7 +36,7 @@ void recv_and_print( void ) {
     // construct message structure to recieve into
     uint8_t data_buffer[DATA_BUFFER_SIZE];
     msg_t message;
-    message.dst_port = TTALK_PORT; 
+    message.dst_port = TTALK_PORT;
     htons(OUR_IP, &message.src_addr);
     message.len = DATA_BUFFER_SIZE;
     message.data = data_buffer;
@@ -63,6 +63,8 @@ int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
     //write( CHAN_SIO, "TigerTalk waiting to recieve message\r\n", 38 );
     write( CHAN_SIO, "tigertalk waiting to recieve message\r\n", 38 );
 
+    // set our MAC
+
     // set our host IP
     uint32_t source_addr;
     htons(OUR_IP, &source_addr);
@@ -70,8 +72,8 @@ int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
 
     // test recieve and print to console I/O
     //recv_and_print();
-    
-    
+
+
 
     // enter test loop of writing what comes in over SIO
     char buf[DATA_BUFFER_SIZE] = {0};

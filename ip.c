@@ -76,6 +76,9 @@ int __ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
         return 0; // error, small packet
     }
 
+
+    __cio_printf("ip\n");
+
     // TODO could do more error checking, but oh well
     NETipv4hdr_t* hdr = (NETipv4hdr_t*)data;
 

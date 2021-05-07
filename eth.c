@@ -36,7 +36,7 @@ eth_dev_t eth;
 uint8_t CU_BUSY = 0; // CU initializes to idle
 
 // MAC initializes to broadcast address on reset
-uint64_t _eth_MAC = 0x000068f728688ced;
+uint64_t _eth_MAC = 0xFFFFFFFFFFFF;
 
 #define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
@@ -194,6 +194,10 @@ uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
     // allocate space on the CBL
     AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)__eth_allocate_CBL(sizeof(AddrSetupActionCmd_t));
     if(ptr == NULL) {
+        #ifdef ETH_DEBUG
+        __cio_printf("CBL alloc fail\n");
+        #endif
+
         return ETH_NO_MEM;
     }
 
@@ -201,16 +205,20 @@ uint8_t __eth_loadaddr(uint64_t addr, uint16_t id) {
     ptr->cmd_word = ETH_ACT_CMD_LOAD_ADDR;
     ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
     // ptr->cmd_word |= ETH_ACT_CMD_I_MASK; // no longer set the I bit
-    ptr->IA_addr_1 = addr;
-    ptr->IA_addr_2 = addr >> 8;
-    ptr->IA_addr_3 = addr >> 16;
-    ptr->IA_addr_4 = addr >> 24;
-    ptr->IA_addr_5 = addr >> 32;
-    ptr->IA_addr_6 = addr >> 40;
+    ptr->IA_addr_6 = addr;
+    ptr->IA_addr_5 = addr >> 8;
+    ptr->IA_addr_4 = addr >> 16;
+    ptr->IA_addr_3 = addr >> 24;
+    ptr->IA_addr_2 = addr >> 32;
+    ptr->IA_addr_1 = addr >> 40;
 
     // create a command node
     cmd_node_t* cmd = __eth_allocate_CMD();
     if(cmd == NULL) {
+        #ifdef ETH_DEBUG
+        __cio_printf("CMD alloc fail\n");
+        #endif
+
         free_commands[cmd->cmd_index] = 0; // free the command node
         CBL_end -= sizeof(AddrSetupActionCmd_t); // unallocate CBL space
         return ETH_NO_MEM;
@@ -331,7 +339,6 @@ static void __eth_isr(int vector, int code) {
         if(__eth_rx_callback != NULL) {
             uint16_t actual_count = (RFA->count_word & ~(0b11 << 14)); // ignore top 2 bits
 
-
             #ifdef ETH_DEBUG
             __cio_printf("packet: \n");
             for(unsigned int i = 0; i < actual_count; i++) {
@@ -348,14 +355,11 @@ static void __eth_isr(int vector, int code) {
             }
        }
 
-
-
         // reset the RFD in the RFA
         __eth_setup_RFD(RFA);
 
         // restart the RU
         __eth_RU_start((uint8_t*)RFA);
-
     }
 
     if(status & ETH_CNA_MASK) { // CU not active interrupt
@@ -371,9 +375,9 @@ static void __eth_isr(int vector, int code) {
         if(__eth_cmd_callback != NULL) {
             uint8_t status_word_hi = CBL[current_cmd->CBL_index + 1];
             if(status_word_hi & ETH_ACTION_CMD_STATUS_OK) {
-                __eth_cmd_callback(current_cmd->id, ETH_CMD_FAIL);
-            } else {
                 __eth_cmd_callback(current_cmd->id, ETH_SUCCESS);
+            } else {
+                __eth_cmd_callback(current_cmd->id, ETH_CMD_FAIL);
             }
         }
 

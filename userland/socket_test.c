@@ -21,6 +21,11 @@ int32_t socket_test( uint32_t arg1, uint32_t arg2 ) {
     // announce our presence
     write( CHAN_SIO, "socket_test starting\n", 21 );
 
+    uint8_t mac[6] = {0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a};
+    if(setMAC(mac) == E_FAILURE) {
+        write(CHAN_SIO, "set MAC failed\n", 16);
+    }
+
     uint32_t ip;
     htons("10.0.2.15", &ip);
     setip(ip);
@@ -36,7 +41,9 @@ int32_t socket_test( uint32_t arg1, uint32_t arg2 ) {
 
     // send message over the network
     for(int i = 0; i < 5; i++) {
-        netsend(&message);
+        if(E_FAILURE == netsend(&message)) {
+            write(CHAN_SIO, "tx failed\n", 10);
+        }
     }
 
     // alert that we've completed our syscall

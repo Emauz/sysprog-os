@@ -208,7 +208,7 @@ void _socket_setip(uint32_t addr) {
 **  implements: setMAC(uint64_t addr)
 **/
 void _socket_setMAC(uint8_t addr[6]) {
-    uint64_t mac = (uint64_t)addr[0] << 40;
+    uint64_t mac = (uint64_t)(addr[0]) << 40;
     mac |= (uint64_t)addr[1] << 32;
     mac |= (uint64_t)addr[2] << 24;
     mac |= (uint64_t)addr[3] << 16;
@@ -222,6 +222,8 @@ void _socket_setMAC(uint8_t addr[6]) {
     _current->state = Blocked;
 
     assert(E_SUCCESS == _que_enque(_cmd_process_q, _current, 0));
+
+    _dispatch();
 }
 
 
