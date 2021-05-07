@@ -1,3 +1,11 @@
+/*
+*   @file   Socket test process
+*
+*   Tests various network syscalls
+*
+*   @author Eric Moss
+*
+*/
 #ifndef SOCKET_TEST_H_
 #define SOCKET_TEST_H_
 
