@@ -1,7 +1,9 @@
 /*
-*   file:  ip.h
+*   @file   ip.h
 *
-*   IPv4 header construction
+*   IPv4 network header declarations
+*
+*   @author Sarah Strickman & Will Merges
 */
 #ifndef IP_H
 #define IP_H

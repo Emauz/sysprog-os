@@ -1,5 +1,9 @@
 /*
-*   ARP protocol
+*   @file   arp.h
+*
+*   ARP protocol declarations
+*
+*   @author Will Merges
 */
 #ifndef ARP_H
 #define ARP_H

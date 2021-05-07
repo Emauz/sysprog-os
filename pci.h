@@ -1,7 +1,9 @@
 /*
-*   file:  pci.h
+*   @file    pci.h
 *
-*   PCI bus utility library
+*   PCI configuration access declarations
+*
+*   @author Will Merges
 */
 
 #ifndef PCI_H

@@ -1,7 +1,9 @@
 /*
-*   file:  link.h
+*   @file   link.h
 *
-*   Link Layer construction
+*   Link layer network header declarations
+*
+*   @author Sarah Strickman & Will Merges
 */
 #ifndef LINK_H
 #define LINK_H
@@ -23,7 +25,7 @@ typedef struct {
 // adds a layer 2 ethernet frame to a buffer of length len.
 // 'msg' is the message to be sent
 // return how large the packet is or zero on error
-// also adds higher layer encapsulated layers
+// NOTE: also adds higher layer encapsulated layers
 uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg);
 
 // parses a frame into a msg structure

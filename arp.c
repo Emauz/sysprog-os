@@ -1,5 +1,9 @@
 /*
-*   ARP protocol
+*   @file   arp.c
+*
+*   ARP protocol implementation
+*
+*   @author Will Merges
 */
 #include "arp.h"
 #include "klib.h"
