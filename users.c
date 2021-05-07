@@ -55,8 +55,7 @@ int32_t userW( uint32_t, uint32_t ); int32_t userX( uint32_t, uint32_t );
 int32_t userY( uint32_t, uint32_t ); int32_t userZ( uint32_t, uint32_t );
 
 int32_t socket_test( uint32_t, uint32_t );
-int32_t ttalk_send_test( uint32_t, uint32_t );
-//int32_t ttalk_recv_test( uint32_t, uint32_t );
+int32_t ttalk( uint32_t, uint32_t );
 
 /*
 ** The user processes
@@ -137,12 +136,8 @@ int32_t ttalk_send_test( uint32_t, uint32_t );
 #include "userland/socket_test.c"
 #endif
 
-#if defined(SPAWN_TTALK_SEND_TEST)
-#include "userland/ttalk_send_test.c"
-#endif
-
-#if defined(SPAWN_TTALK_RECV_TEST)
-#include "userland/ttalk_recv_test.c"
+#if defined(SPAWN_TTALK)
+#include "userland/ttalk.c"
 #endif
 
 /*
