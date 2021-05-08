@@ -1,7 +1,10 @@
-The ethernet module contains functionality to operate the Intel 8255x family of network devices. 
+The ethernet module contains functionality to operate the Intel 8255x family of network devices.
+It is currently only tested with the Intel 82557 and only recognizes the 82557's device id on 
+initialization.
 
 ========== API ============
 There are 5 main functions in the API: init, loadaddr, tx, set_cmd_callback, and set_rx_callback.
+They are declared in eth.h and defined in eth.c
 
 init:
     void _eth_init(void);
@@ -16,7 +19,7 @@ loadaddr:
     carried out on the device asynchronously and the function will return immediately. When the command
     is complete the command callback function will be called with the passed in id if set.
 
-    If addr is not 48-bit ETH_TOO)_LARGE will be returned. If there is no memory to execute the command,
+    If addr is not 48-bit ETH_TOO_LARGE will be returned. If there is no memory to execute the command,
     ETH_NO_MEM will be returned.
 
     The address will be directly set in the device, so it should be in network (big endian) order.
@@ -45,13 +48,63 @@ set_rx_callback:
     frame. The frame, including the Ethernet header is located at data and is count bytes long. The
     status of the receive is also passed, either ETH_SUCCESS or ETH_FAILURE.
 
+======== PCI ==============
+At initialization of the module, the PCI bus is scanned until a device with a device id and vendor id 
+matching the Intel 82557 is found. The id's to look for can be expanded to support more devices. The
+interrupt line is copied as well as the I/O base address of the Control/Status register. The rest of the
+module uses the CSR base address to control the card by reading and writing to the I/O address space.
 
-===== Data Structures =====
+======= CSR ================
+The Control/Status registers are used to read interrupt status and execute high level commands. The CU
+start, RU start, load CU base, and load RU base commands are implemented in the module.
+
+CU/RU start starts the command unit and receive unit respectively and the load CU/RU base sets the base 
+address to add to the System Control Block general pointer. We use linear addressing so these commands 
+are executed with a base address of zero.
+
+We also use the PORT register in the CSR to control software resets at initialization.
+
+===== Data Structures - CBL =====
+The CU executes commands based on the Command Block List. The CBL exists in system memory and the device
+uses direct memory access to read/write to it. The address of the CBL is passed in through the System
+Control Block (SCB) general pointer. The CBL contains a list of "action commands" for the CU to execute.
+
+We keep a single command in the CBL and restart the CU when the device interrupts after completing
+execution of a command. We store commands on a queue of "cmd_node_t" types. Command nodes are a
+structure that track the index into a fixed array of memory, the size of the command, and the associated
+system id with a command. We keep a fixed size array of different action commands and allocated memory
+from that array. We also keep a fixed size array to allocate cmd_node_t's from.
+
+Entries in the CBL must be word (2-byte) aligned, so every memory allocation that occurs makes sure to
+word align CBL addresses.
+
+We chose to use simple memory mode which means for transmit commands the frame to transmit is located
+immediately after the command in memory, which means our memory allocation needed to support variable
+sizes.
+
+The device interrupts everytime the command on the CBL completes. We dequeue the next command to
+run and execute CU start through the CSR, but changing the pointer to the CBL to the new command.
+
+===== Data Structures - RFA =====
+The Receice Frame Area is used by the RU to place received frames in. The RFA contains a linked list
+of Receive Frame Descriptors (RFD) which specify how much memory is available to write to and the status
+of a read. For simplification, we only ever have one RFD in the RFA and clear that single RFD every time
+the device interrupts with a "frame ready" status.
+
+When the interrupt occurs, we call the receive callback function if set with a pointer to the received
+frame and a status. After the callback completes, we reset the RFD and execute RU start with the same
+pointer to the RFA to restart the receive unit.
+
+Having only one RFD in the RFA does limit how fast we can respond to packets, in the future we should
+expand the RFA so we can process multiple receives faster.
 
 ======= Callbacks =========
-TODO
--data structures
-    -CBL, cmd queue, cmd block, cmd node
-    -RFA, RFD
+Callbacks are the mechanism to get command status and get data from received frames. 
 
--callbacks
+The command callback is triggered everytime a transmit or load address command completes. The callback 
+should make sure to check the id of the command completed, an id of 0 means that the kernel executed thecommand and the callback function should ignore it. The command callback is set with the 
+_eth_set_cmd_callback function.
+
+The receive callback is called every time a frame is received. This is where frames should be parsed
+and passed further to users if needed. The receive callback is set with the _eth_set_rx_callback 
+function.
