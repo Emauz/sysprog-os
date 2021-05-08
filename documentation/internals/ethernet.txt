@@ -1,0 +1,57 @@
+The ethernet module contains functionality to operate the Intel 8255x family of network devices. 
+
+========== API ============
+There are 5 main functions in the API: init, loadaddr, tx, set_cmd_callback, and set_rx_callback.
+
+init:
+    void _eth_init(void);
+
+    Initializes the ethernet module. This function needs to be called before any of the other functions
+    in the module are called.
+
+loadaddr:
+    uint8_t _eth_loadaddr(uint64_t addr, uint16_t id);
+
+    Sets the internal 48-bit address of the device (most of the time a MAC address). The command is
+    carried out on the device asynchronously and the function will return immediately. When the command
+    is complete the command callback function will be called with the passed in id if set.
+
+    If addr is not 48-bit ETH_TOO)_LARGE will be returned. If there is no memory to execute the command,
+    ETH_NO_MEM will be returned.
+
+    The address will be directly set in the device, so it should be in network (big endian) order.
+
+tx:
+    uint8_t _eth_tx(uint8_t* data, uint16_t len, uint16_t id);
+
+    Transmit len bytes from data physically over the network. The command is carried out on the device
+    asynchronously and the function will return immediately. When the command is complete the command
+    callback function will be called with the passed in id if set.
+
+    If len is not 14 bits, ETH_TOO_LARGE will be returned. If there is no memory to execute the command,
+    ETH_NO_MEM will be returned.
+
+set_cmd_callback:
+    void _eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status));
+
+    Sets the command callback function. This function will be called in the ISR when a transmit or load
+    address command is completed. The function will pass the id of the command completed as well as the
+    status of the command, either ETH_SUCCESS or ETH_FAILURE.
+
+set_rx_callback:
+    void _eth_set_rx_callback(void (*callback)(uint16_t status, const uint8_t* data, uint16_t count));
+
+    Set the receive callback function. This function is called everytime the device receives an ethernet
+    frame. The frame, including the Ethernet header is located at data and is count bytes long. The
+    status of the receive is also passed, either ETH_SUCCESS or ETH_FAILURE.
+
+
+===== Data Structures =====
+
+======= Callbacks =========
+TODO
+-data structures
+    -CBL, cmd queue, cmd block, cmd node
+    -RFA, RFD
+
+-callbacks

@@ -80,23 +80,15 @@ typedef struct {
     uint32_t CSR_IO_BA; // i/o address space base address (only one of these is necessary)
 } eth_dev_t;
 
-// init the ethernet module
-void _eth_init(void);
-// void _eth_nop(void);
-
-// SCB commands
-void _eth_disable_int(void);
-void _eth_enable_int(void);
-void _eth_load_CU_base(uint32_t base_addr);
-void _eth_load_RU_base(uint32_t base_addr);
-void _eth_CU_start(uint8_t* CBL_addr);
-void _eth_RU_start(uint8_t* RFA_addr);
 
 // holds the current MAC address of the NIC
 extern uint64_t _eth_MAC;
 
-// ~high-level commands~ //
-// return ETH_SUCCESS or other value
+// ***high-level commands*** //
+// return ETH_SUCCESS or error
+
+// init the ethernet module
+void _eth_init(void);
 
 // load an internal (MAC) address into the NIC
 // address must be 48-bits in big endian order, if it's not will return ETH_TOO_LARGE
@@ -107,10 +99,6 @@ uint8_t _eth_loadaddr(uint64_t addr, uint16_t id);
 // associate 'id' with the command
 uint8_t _eth_tx(uint8_t* data, uint16_t len, uint16_t id);
 
-// receive data of max length len
-// associate 'id' with the command
-uint8_t _eth_rx(uint8_t* data, uint16_t len, uint16_t id);
-
 // set a function to call when a command is complete
 // passes back the id associated with the id and a status of the command
 void _eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status));
@@ -119,5 +107,14 @@ void _eth_set_cmd_callback(void (*callback)(uint16_t id, uint16_t status));
 // passes back id, status, a pointer to the packet, and a count of how many bytes are in the packet
 // CANNOT modify the data at 'data', it needs to be copied out
 void _eth_set_rx_callback(void (*callback)(uint16_t status,  const uint8_t* data, uint16_t count));
+
+
+// SCB commands
+void _eth_disable_int(void);
+void _eth_enable_int(void);
+void _eth_load_CU_base(uint32_t base_addr);
+void _eth_load_RU_base(uint32_t base_addr);
+void _eth_CU_start(uint8_t* CBL_addr);
+void _eth_RU_start(uint8_t* RFA_addr);
 
 #endif
