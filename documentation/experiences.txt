@@ -1,0 +1,4 @@
+The first thing we did when starting our project was design what features we wanted each module to
+include. This ended up translating into an design of the interface for each module
+
+TODO
