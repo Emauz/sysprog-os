@@ -1,0 +1,56 @@
+The syscalls module implements the networking syscalls in the OS. The system calls we added are netsend,
+netrecv, setip, and setMAC. Their descriptions and use is documented in 'documentation/man'.
+
+All syscalls have a definition in syscalls.c that act as a wrapper to handle argument casting and call
+the implementations declared in netsys.h and defined in netsys.c.
+e.g. _sys_netsend calls _sysnet_send with the proper casted argument.
+
+The msg_t structure used as parameters for netsend and netrecv is documented in 
+'documentation/man/msg.txt'.
+
+===== init =====
+void _sysnet_init( void )
+
+This function must be called on system initialization before any user processes are able to use the
+networking system calls. This function sets up the queue for blocked processes and sets the ethernet
+module callback functions.
+
+===== netsend =====
+void _sysnet_send(msg_t* msg)
+
+This function creates a valid Ethernet/IPv4/UDP frame specified by msg and set by the system and sends
+it using the _eth_tx function from the Ethernet module. The id passed to _eth_tx is the PID of the
+calling process. The calling process is blocked and placed on a queue until it is unblocked in the
+command callback function.
+
+The _sysnet_cmd_cb function is the function passed to the ethernet module as the command callback
+function. The callback checks the id of the command completed and if it's not zero (not executed by the 
+kernel) then it dequeues the waiting process from the queue, sets it's return value, and unblocks it.
+
+===== setMAC =====
+void _sysnet_setMAC(uint8_t addr[6])
+
+This function uses _eth_loadaddr to set the 48-bit network order (big endian) order MAC address of the
+device. The calling process is blocked until the command is executed and the command callback function
+shared with netsend unblocks the process and sets the return value.
+
+===== setIP =====
+void _sysnet_setip(uint32_t addr)
+
+This function updates the IPv4 address that belongs to the system. This IP address is used as the source
+address for any packets sent and is used to throw out bad packets that are not addressed to this
+address.
+
+===== netrecv =====
+void _sysnet_recv(msg_t* msg)
+
+This function records msg and the calling process and then blocks the process until it is unblocked by
+the receive callback function. Processes are kept in a fixed size list of recv_node_t structs which
+contain the msg_t and the proc_t* of the calling process. If there is no space on the list, the return
+of the calling process is set to E_FAILURE and the scheduler is dispatched.
+
+The _sysnet_recv_cb is the function called by the ethernet module everytime a frame is received. The
+callback function calls _link_parse_frame to either send an ARP reply or fill in a temporary msg_t. If
+_link_parse_frame returns a 1, the frame is valid and a user may be waiting for it. The lust of
+recv_node_t's is searched and any processes waiting for a matching destination port have the temporary
+msg_t copied to their msg_t, their return values set, and then unblocked.
