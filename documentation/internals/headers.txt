@@ -1,0 +1,129 @@
+The headers module contains functions to assemble Ethernet II, IPv4, and UDP headers. Each part of the
+module contains an "add" function to add header data to a packet as well as a "parse" function to
+extract data from a packet.
+
+There is an additional part of the module that handles basic ARP requests.
+
+===== Ethernet =====
+The Ethernet header functions are declared in link.h and defined in link.c.
+This part of the module makes up the link layer of the networking stack.
+
+------- add -----------
+uint16_t _link_add_header(uint8_t* buff, uint16_t len, msg_t* msg)
+
+    Adds an Ethernet header to buff of max length len according to msg.
+
+    The dst_MAC field of the msg will be used as the destination MAC in the header, the source MAC
+    will be the current MAC address of the device, set by the setMAC syscall or defaulting to the
+    broadcast address 0xFFFFFFFFFFFF.
+
+    This function will call _ipv4_add_header and set the Ethernet frame size accordingly.
+
+    Returns the length of the header or zero on error.
+
+
+------- parse -----------
+int _link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data)
+
+    Parses Ethernet frame data from data of length len into msg.
+
+    Will fill in src_MAC and dst_MAC fields of msg.
+
+    Will call _ipv4_parse_frame if the frame contains an IPv4 packet, if the frame is an ARP request 
+    addressed to our IP address, it will call _arp_respond.
+
+    Returns 1 if the frame is a valid Ethernet frame and higher layers called are valid as well.
+    Returns 0 on error.
+    Returns 0 if the frame contained an ARP request.
+
+
+The LINKhdr_t struct contains the fields that make up the Ethernet header and is used to create and
+parse Ethernet frames.
+
+
+===== IPv4 =====
+The IPv4 header functions are declared in ip.h and defined in ip.c.
+This part of the module makes up the network layer of the networking stack.
+
+------ add -------------
+uint16_t _ip_add_header(uint8_t* buff, uint16_t len, msg_t* msg)
+
+    Adds an IPv4 header to buff of max length len according to msg.
+
+    The dst_addr field of the msg will be used as the destination address in the header, the source
+    address will be the current IP address set by the user with the setIP syscall or the default address
+    of 0.0.0.0.
+
+    This function will call _udp_add_header and set the total length field and checksum accordingly.
+
+    Returns the length of the header or zero on error.
+
+
+uint16_t _link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data)
+
+    Parses IPv4 packet data from data of length len into msg.
+
+    Will fill in src_addr and dst_addr fields of msg.
+
+    Will call _udp_parse_frame if the packet has the protocol field set the UDP, otherwise assumed an
+    invalid packet and returns an error.
+
+    Returns 1 if the data is a valid IPv4 packet and higher layers called are valid as well.
+    Returns 0 on error.
+
+
+The NETipv4hdr_t struct contains the fields that make up the IPv4 header and is used to create and parse
+IPv4 packets.
+
+
+===== UDP =====
+The UDP header functions are declared in transport.h and defined in transport.c.
+This part of the module makes up the transport layer of the networking stack.
+
+------ add -------
+uint16_t _udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg)
+
+    Adds an UDP header and payload to buff of max length len according to msg.
+
+    The dst_port field of msg will be used as the destination port and src_port will be used as the
+    source port. msg->len bytes from msg->data will be copied to the payload section immediately after
+    the header and are included in the returned length.
+
+    No further header functions are called from this layer.
+
+------ parse ------
+
+uint16_t _link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data)
+
+    Parses IPv4 packet data from data of length len into msg.
+
+    Will fill in src_port and dst_port fields of msg. Will set the msg->data pointer to point to the
+    payload section in the passed in data pointer. msg->len will be set to the payload size.
+
+    No further header functions are called from this layer.
+
+    Returns 1 if the data is valid UDP header and payload.
+    Returns 0 on error.
+
+
+The UDPhdr_t struct contains the fields that make up the UDP header and is used to create and parse UDP
+packets.
+
+
+===== ARP =====
+The ARP part of the module is used as a "50% implementation" of address resolution protocol. It has a
+single function declared in arp.h and defined in arp.c that responds to ARP requests.
+
+void _arp_respond(const uint8_t* data, uint16_t len, uint32_t ip)
+
+    Checks if the ARP packet at data of length len is an ARP packet addressed to address given by ip.
+    If it is a packet addressed to ip it will send an ARP response by calling _eth_tx with an id of 0.
+
+    Does not return any value, any errors should be ignored and an ARP response is not sent.
+
+
+===== USAGE =====
+In general, this module should be used to send packets by calling _link_add_header with a large fixed 
+size array of the max length of an Ethernet frame. When packets are received, they should be passed to
+_link_parse_frame to fill in a msg_t. The ARP part of the module can be largely ignored as _arp_respond
+is called automatically by _link_parse_frame on reception of an ARP packet.
