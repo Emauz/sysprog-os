@@ -26,7 +26,7 @@
 #include "sio.h"
 
 #include "queues.h"
-#include "socket.h"
+#include "sysnet.h"
 
 // copied from ulib.h
 extern void exit_helper( void );

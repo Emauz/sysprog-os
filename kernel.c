@@ -24,7 +24,7 @@
 #include "eth.h"
 #include "test.h"
 #include "net.h"
-#include "socket.h"
+#include "sysnet.h"
 
 // need init() and idle() addresses
 #include "users.h"

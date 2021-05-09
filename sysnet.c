@@ -7,7 +7,7 @@
 */
 #include "eth.h"
 #include "ip.h"
-#include "socket.h"
+#include "sysnet.h"
 #include "support.h"
 #include "common.h"
 #include "kdefs.h"

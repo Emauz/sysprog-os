@@ -1,7 +1,7 @@
 #ifndef TTALK_H_
 #define TTALK_H_
 
-#include "../socket.h"
+#include "../sysnet.h"
 #include "../net.h"
 #include "../eth.h"
 #include "../cio.h"
