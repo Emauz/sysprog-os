@@ -519,7 +519,7 @@ static void _sys_netsend( uint32_t args[4] ) {
     msg_t* msg = (msg_t*)args[0];
 
     // Pass off to socket implementation
-    _socket_send(msg);
+    _sysnet_send(msg);
 
     __cio_puts("completed\n");
 }
@@ -535,7 +535,7 @@ static void _sys_netsend( uint32_t args[4] ) {
 */
 static void _sys_netrecv( uint32_t args[4] ) {
     msg_t* msg = (msg_t*)args[0];
-    _socket_recv(msg);
+    _sysnet_recv(msg);
 }
 
 /*
@@ -546,7 +546,7 @@ static void _sys_netrecv( uint32_t args[4] ) {
 ** @param addr  the 32-bit IP address in network order
 */
 static void _sys_setip( uint32_t args[4] ) {
-    _socket_setip(args[0]);
+    _sysnet_setip(args[0]);
 }
 
 /*
@@ -559,7 +559,7 @@ static void _sys_setip( uint32_t args[4] ) {
 static void _sys_setMAC( uint32_t args[4] ) {
     uint8_t* mac = (uint8_t*)args[0];
 
-    _socket_setMAC(mac);
+    _sysnet_setMAC(mac);
 }
 
 

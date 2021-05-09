@@ -15,7 +15,7 @@
 #endif
 
 
-uint16_t __udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
+uint16_t _udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     if((sizeof(UDPhdr_t) + msg->len) > len) {
         return 0;
     }
@@ -34,7 +34,7 @@ uint16_t __udp_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 }
 
 
-int __udp_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
+uint16_t _udp_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     if(sizeof(UDPhdr_t) > len) {
         return 0; // too small
     }

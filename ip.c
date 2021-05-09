@@ -21,7 +21,7 @@
 
 uint32_t _ip_addr = 0x0; // initialize to 0
 
-uint16_t __ipv4_checksum(const uint16_t* data, uint16_t len) {
+uint16_t _ipv4_checksum(const uint16_t* data, uint16_t len) {
     uint16_t sum = 0;
     for(int i = 0; i < (len / sizeof(uint16_t)); i++) {
         sum += data[i];
@@ -38,7 +38,7 @@ uint16_t __ipv4_checksum(const uint16_t* data, uint16_t len) {
     return ret;
 }
 
-uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
+uint16_t _ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     if(sizeof(NETipv4hdr_t) > len) {
         return 0;
     }
@@ -55,7 +55,7 @@ uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     msg->src_addr = _ip_addr; // fill in message struct for the user
     hdr->dst_addr = msg->dst_addr;
 
-    uint16_t size = __udp_add_header(buff + sizeof(NETipv4hdr_t), len - sizeof(NETipv4hdr_t), msg);
+    uint16_t size = _udp_add_header(buff + sizeof(NETipv4hdr_t), len - sizeof(NETipv4hdr_t), msg);
     if(size == 0) {
         return 0;
     }
@@ -63,7 +63,7 @@ uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     hdr->tot_len[0] = (sizeof(NETipv4hdr_t) + size) >> 8;
     hdr->tot_len[1] = sizeof(NETipv4hdr_t) + size;
 
-    uint16_t checksum = __ipv4_checksum((uint16_t*)hdr, sizeof(NETipv4hdr_t));
+    uint16_t checksum = _ipv4_checksum((uint16_t*)hdr, sizeof(NETipv4hdr_t));
     hdr->checksum[0] = checksum;
     hdr->checksum[1] = checksum >> 8;
 
@@ -71,7 +71,7 @@ uint16_t __ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 }
 
 
-int __ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
+uint16_t _ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     if(sizeof(NETipv4hdr_t) > len) {
         return 0; // error, small packet
     }
@@ -90,7 +90,7 @@ int __ipv4_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     msg->src_addr = hdr->src_addr;
 
     if(hdr->protocol == UDP_PROTOCOL) {
-        return __udp_parse_frame(msg, len - sizeof(NETipv4hdr_t), data + sizeof(NETipv4hdr_t));
+        return _udp_parse_frame(msg, len - sizeof(NETipv4hdr_t), data + sizeof(NETipv4hdr_t));
     }
 
     return 0; // unsupported protocol

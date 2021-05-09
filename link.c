@@ -14,7 +14,7 @@
 // debug
 #include "cio.h"
 
-uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
+uint16_t _link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     if(sizeof(LINKhdr_t) + 4 > len) { // header plus frame check sequence
         return 0;
     }
@@ -42,7 +42,7 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
 
     hdr->ethertype = IPV4_ETHERTYPE;
 
-    uint16_t size = __ipv4_add_header(buff + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), msg);
+    uint16_t size = _ipv4_add_header(buff + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), msg);
     if(size == 0) {
         return 0;
     }
@@ -61,7 +61,7 @@ uint16_t __link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     return size;
 }
 
-int __link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
+uint16_t _link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     if(sizeof(LINKhdr_t) > len) {
         return 0;
     }
@@ -82,9 +82,9 @@ int __link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     msg->src_MAC |= (uint64_t)hdr->src_mac[5];
 
     if(hdr->ethertype == IPV4_ETHERTYPE) {
-        return __ipv4_parse_frame(msg, len - sizeof(LINKhdr_t), data + sizeof(LINKhdr_t));
+        return _ipv4_parse_frame(msg, len - sizeof(LINKhdr_t), data + sizeof(LINKhdr_t));
     } else if(hdr->ethertype == ARP_ETHERTYPE) {
-        __arp_respond(data + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), _ip_addr);
+        _arp_respond(data + sizeof(LINKhdr_t), len - sizeof(LINKhdr_t), _ip_addr);
     }
     return 0; // nothing that the user needs, either ARP or unsupported protocol
 }

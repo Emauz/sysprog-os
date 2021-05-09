@@ -95,9 +95,12 @@ typedef struct {
 // statically allocated block of commands to use
 cmd_node_t commands[MAX_COMMANDS];
 uint8_t free_commands[MAX_COMMANDS]; // bit map of open indices in 'commands'
-cmd_node_t* current_cmd;
+cmd_node_t* current_cmd; // the current command executing on the CU
 
 // statically allocated space for action commands to reside
+// NOTE: 'CBL' just points to the first word aligned byte in CBL_data
+//        The CBL that the device is aware of is contained in 'CBL' but is at
+//        the address specified in the index of the cmd_note_t of current_cmd
 uint8_t CBL_data[CBL_SIZE];
 uint8_t* CBL;
 int CBL_start; // index into CBL
@@ -108,6 +111,7 @@ int CBL_end; // index into CBL
 queue_t _cu_waiting;
 
 // receive frame area
+// NOTE: currently the RFA only contains one RFD and it is reset ever FR interrupt in the ISR
 uint8_t* RFA_data[RFA_SIZE];
 RFD_t* RFA;
 

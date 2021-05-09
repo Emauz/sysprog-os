@@ -140,7 +140,7 @@ void _init( void ) {
     _sio_init();
 
     _eth_init();
-    _socket_init();
+    _sysnet_init();
 
     // TESTING
     // __packet_test();

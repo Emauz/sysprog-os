@@ -18,7 +18,7 @@ void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
     uint8_t buff[2048];
     temp.data = buff;
     temp.len = 2048;
-    int ret = __link_parse_frame(&temp, count, data);
+    int ret = _link_parse_frame(&temp, count, data);
     __cio_printf("ret: %02x\n", ret);
     if(!ret) {
         __cio_printf("return early rx cb\n");
@@ -46,7 +46,7 @@ void __packet_test(void) {
     msg.data = (uint8_t*)"test"; // somewhere in RO data
 
     // fills in src port, src MAC for us
-    uint16_t size = __link_add_header(buff, 2000, &msg);
+    uint16_t size = _link_add_header(buff, 2000, &msg);
 
     // for(uint16_t i = 0; i < size; i++) {
     //     __cio_printf("%02x ", buff[i]);
@@ -76,35 +76,35 @@ void __pci_test(void) {
 }
 
 
-void __link_test(void) {
+void _link_test(void) {
   uint8_t arr[5 + 14];
   char test[6];
 
   __memcpy(arr, "test", sizeof(test));
-  __link_add_header((uint8_t*) arr, sizeof(arr), 0);
-  // __link_add_header((uint8_t*)"test2", 18, 1);
-  // __link_add_header((uint8_t*)"ip test2", 19, 2);
-  // __link_add_header((uint8_t*)"ip test2", 19, 3);
+  _link_add_header((uint8_t*) arr, sizeof(arr), 0);
+  // _link_add_header((uint8_t*)"test2", 18, 1);
+  // _link_add_header((uint8_t*)"ip test2", 19, 2);
+  // _link_add_header((uint8_t*)"ip test2", 19, 3);
 
   // uint8_t arr[1 + 4 + 14];
   // __memcpy(arr, "test", 5);
-  // __link_add_header((uint8_t*) arr, 4 + 14, 0);
-  // __link_add_header((uint8_t*)"test", 128, 0);
-  // __link_add_header((uint8_t*)"test2", 18, 1);
-  // __link_add_header((uint8_t*)"ip test2", 19, 2);
-  // __link_add_header((uint8_t*)"ip test2", 19, 3);
+  // _link_add_header((uint8_t*) arr, 4 + 14, 0);
+  // _link_add_header((uint8_t*)"test", 128, 0);
+  // _link_add_header((uint8_t*)"test2", 18, 1);
+  // _link_add_header((uint8_t*)"ip test2", 19, 2);
+  // _link_add_header((uint8_t*)"ip test2", 19, 3);
 }
 
-void __ip_test(void) {
-  // __ipv4_add_header((uint8_t*)"ip test", 42, 0);
-  // __ipv4_add_header((uint8_t*)"ip test2", 42, 1);
-  // __ipv4_add_header((uint8_t*)"ip test2", 43, 2);
-  // __ipv4_add_header((uint8_t*)"ip test2", 43, 3);
+void _ip_test(void) {
+  // _ipv4_add_header((uint8_t*)"ip test", 42, 0);
+  // _ipv4_add_header((uint8_t*)"ip test2", 42, 1);
+  // _ipv4_add_header((uint8_t*)"ip test2", 43, 2);
+  // _ipv4_add_header((uint8_t*)"ip test2", 43, 3);
 }
 
 void __transport_test(void) {
-  // __udp_add_header((uint8_t*)"ip test", 24, 0);
-  // __udp_add_header((uint8_t*)"ip test2", 24, 1);
-  // __udp_add_header((uint8_t*)"ip test2", 25, 2);
-  // __udp_add_header((uint8_t*)"ip test2", 25, 3);
+  // _udp_add_header((uint8_t*)"ip test", 24, 0);
+  // _udp_add_header((uint8_t*)"ip test2", 24, 1);
+  // _udp_add_header((uint8_t*)"ip test2", 25, 2);
+  // _udp_add_header((uint8_t*)"ip test2", 25, 3);
 }

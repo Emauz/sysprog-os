@@ -11,20 +11,20 @@ _eth_transmit(uint8_t* packet, size_t len) // takes process off the ready queue 
 
 ipv4 layer interface:
 
-__ipv4_init()
+_ipv4_init()
 
 // return offset of how big header is OR return pointer to first address after header in buffer OR -1 if ran out of space
-__ipv4_add_header(uint8_t* buffer, size_t len) // len is max len of buffer, should be enough space for ipv4 header + UDP header + payload
+_ipv4_add_header(uint8_t* buffer, size_t len) // len is max len of buffer, should be enough space for ipv4 header + UDP header + payload
 
 
 
 
 UDP layer interface:
 
-__udp_init()
+_udp_init()
 
 // return offset of how big header is OR return pointer to first address after header in buffer OR -1 if ran out of space
-__udp_add_header(uint8_t* buffer, size_t len) // len is max len of buffer, should be enough space for ipv4 header + UDP header + payload
+_udp_add_header(uint8_t* buffer, size_t len) // len is max len of buffer, should be enough space for ipv4 header + UDP header + payload
 
 
 
