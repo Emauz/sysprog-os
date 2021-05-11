@@ -1,0 +1,21 @@
+NAME
+        wait - wait for a child process to terminate
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        int32_t wait( int32_t *status );
+
+DESCRIPTION
+        wait() causes the current process to wait until a child process 
+        terminates. 'status' is a pointer to a int32_t into which the 
+        child's status is placed, or NULL. If there are no children in 
+        the system, returns an error code (*status is unchanged). 
+        If there are one or more children in the system and at least one 
+        has terminated but hasn't yet been cleaned up, cleans up that 
+        process and returns its information; otherwise, blocks 
+        until a child terminates.
+
+RETURN VALUE
+        The PID of the terminated child, or an error code
