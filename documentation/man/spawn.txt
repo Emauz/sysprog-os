@@ -1,0 +1,17 @@
+NAME
+        spawn - create a new process
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        pid_t spawn( int (*entry)(uint32_t,uint32_t), prio_t, uint32_t, uint32_t );
+
+DESCRIPTION
+        spawn() attempts to spawn a process.  'entry' is a function, which is 
+        the entry point of the new code. 'prio' is the desired priotity of the
+        process being spawned. 'arg1' and 'arg2' are the first and second
+        command line arguments, respectively.
+
+RETURN VALUE
+        The PID of the spawned process, or an error code.

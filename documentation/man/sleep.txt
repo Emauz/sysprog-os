@@ -1,0 +1,16 @@
+NAME
+        sleep - put the current process to sleep for some length of time
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        void sleep( uint32_t msec );
+
+DESCRIPTION
+        Puts the current process to sleep for 'msec' milliseconds.  If an 
+        error occurs, add the current process back int the ready queue.
+        Dispatch the next process.
+
+RETURN VALUE
+        void.
