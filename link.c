@@ -22,23 +22,22 @@ uint16_t _link_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {
     // setup header
     LINKhdr_t* hdr = (LINKhdr_t*)buff;
 
-    hdr->dst_mac[0] = msg->dst_MAC >> 40;
-    hdr->dst_mac[1] = msg->dst_MAC >> 32;
-    hdr->dst_mac[2] = msg->dst_MAC >> 24;
-    hdr->dst_mac[3] = msg->dst_MAC >> 16;
-    hdr->dst_mac[4] = msg->dst_MAC >> 8;
-    hdr->dst_mac[5] = msg->dst_MAC;
+    hdr->dst_mac[0] = msg->dst_MAC[0];
+    hdr->dst_mac[1] = msg->dst_MAC[1];
+    hdr->dst_mac[2] = msg->dst_MAC[2];
+    hdr->dst_mac[3] = msg->dst_MAC[3];
+    hdr->dst_mac[4] = msg->dst_MAC[4];
+    hdr->dst_mac[5] = msg->dst_MAC[5];
 
     // let the NIC fill in src MAC
     // ACTUALLY this config option is not enabled by default (NSAI bit of config command, page 75 of the manual)
     // so we fill in the src MAC address ourselves
-    hdr->src_mac[0] = _eth_MAC >> 40;
-    hdr->src_mac[1] = _eth_MAC >> 32;
-    hdr->src_mac[2] = _eth_MAC >> 24;
-    hdr->src_mac[3] = _eth_MAC >> 16;
-    hdr->src_mac[4] = _eth_MAC >> 8;
-    hdr->src_mac[5] = _eth_MAC;
-    msg->src_MAC = _eth_MAC; // fill in message struct for the user
+    hdr->src_mac[0] = _eth_MAC[0];
+    hdr->src_mac[1] = _eth_MAC[1];
+    hdr->src_mac[2] = _eth_MAC[2];
+    hdr->src_mac[3] = _eth_MAC[3];
+    hdr->src_mac[4] = _eth_MAC[4];
+    hdr->src_mac[5] = _eth_MAC[5];
 
     hdr->ethertype = IPV4_ETHERTYPE;
 
@@ -67,19 +66,19 @@ uint16_t _link_parse_frame(msg_t* msg, uint16_t len, const uint8_t* data) {
     }
 
     LINKhdr_t* hdr = (LINKhdr_t*)data;
-    msg->dst_MAC = (uint64_t)hdr->dst_mac[0] << 40;
-    msg->dst_MAC |= (uint64_t)hdr->dst_mac[1] << 32;
-    msg->dst_MAC |= (uint64_t)hdr->dst_mac[2] << 24;
-    msg->dst_MAC |= (uint64_t)hdr->dst_mac[3] << 16;
-    msg->dst_MAC |= (uint64_t)hdr->dst_mac[4] << 8;
-    msg->dst_MAC |= (uint64_t)hdr->dst_mac[5];
+    msg->dst_MAC[0] = hdr->dst_mac[0];
+    msg->dst_MAC[1] = hdr->dst_mac[1];
+    msg->dst_MAC[2] = hdr->dst_mac[2];
+    msg->dst_MAC[3] = hdr->dst_mac[3];
+    msg->dst_MAC[4] = hdr->dst_mac[4];
+    msg->dst_MAC[5] = hdr->dst_mac[5];
 
-    msg->src_MAC = (uint64_t)hdr->src_mac[0] << 40;
-    msg->src_MAC |= (uint64_t)hdr->src_mac[1] << 32;
-    msg->src_MAC |= (uint64_t)hdr->src_mac[2] << 24;
-    msg->src_MAC |= (uint64_t)hdr->src_mac[3] << 16;
-    msg->src_MAC |= (uint64_t)hdr->src_mac[4] << 8;
-    msg->src_MAC |= (uint64_t)hdr->src_mac[5];
+    msg->src_MAC[0] = hdr->src_mac[0];
+    msg->src_MAC[1] = hdr->src_mac[1];
+    msg->src_MAC[2] = hdr->src_mac[2];
+    msg->src_MAC[3] = hdr->src_mac[3];
+    msg->src_MAC[4] = hdr->src_mac[4];
+    msg->src_MAC[5] = hdr->src_mac[5];
 
     if(hdr->ethertype == IPV4_ETHERTYPE) {
         return _ipv4_parse_frame(msg, len - sizeof(LINKhdr_t), data + sizeof(LINKhdr_t));

@@ -36,7 +36,7 @@ eth_dev_t eth;
 uint8_t CU_BUSY = 0; // CU initializes to idle
 
 // MAC initializes to broadcast address on reset
-uint64_t _eth_MAC = 0xFFFFFFFFFFFF;
+uint8_t _eth_MAC[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 #define CBL_SIZE 8192
 #define MAX_COMMANDS 50 // maximum number of commands that can be processed at a time
@@ -164,9 +164,10 @@ static inline uint8_t* _eth_allocate_CBL(uint16_t len) {
     }
 
     if(CBL_end >= CBL_start || CBL_end + len < CBL_start) {
+        uint32_t ret = CBL_end;
         CBL_end += len;
-        CBL_end += (CBL_end % 2); // word align the CBL slab
-        return &CBL[CBL_end - len];
+        CBL_end += (len % 2); // word align the CBL slab
+        return &CBL[ret];
     }
 
     return NULL;
@@ -186,14 +187,9 @@ static inline cmd_node_t* _eth_allocate_CMD(void) {
 
 
 // internal address should be 48 bits, if it's not an error will be returned
-uint8_t _eth_loadaddr(uint64_t addr, uint16_t id) {
-    if(addr & ((uint64_t)0xFF << 48)) {
-        // address is over 48 bits
-        return ETH_TOO_LARGE;
-    }
-
+uint8_t _eth_loadaddr(uint8_t addr[6], uint16_t id) {
     // update the current MAC address
-    _eth_MAC = addr;
+    __memcpy(_eth_MAC, addr, 6);
 
     // allocate space on the CBL
     AddrSetupActionCmd_t* ptr = (AddrSetupActionCmd_t*)_eth_allocate_CBL(sizeof(AddrSetupActionCmd_t));
@@ -209,12 +205,12 @@ uint8_t _eth_loadaddr(uint64_t addr, uint16_t id) {
     ptr->cmd_word = ETH_ACT_CMD_LOAD_ADDR;
     ptr->cmd_word |= ETH_ACT_CMD_EL_MASK;
     // ptr->cmd_word |= ETH_ACT_CMD_I_MASK; // no longer set the I bit
-    ptr->IA_addr_6 = addr;
-    ptr->IA_addr_5 = addr >> 8;
-    ptr->IA_addr_4 = addr >> 16;
-    ptr->IA_addr_3 = addr >> 24;
-    ptr->IA_addr_2 = addr >> 32;
-    ptr->IA_addr_1 = addr >> 40;
+    ptr->IA_addr_6 = addr[5];
+    ptr->IA_addr_5 = addr[4];
+    ptr->IA_addr_4 = addr[3];
+    ptr->IA_addr_3 = addr[2];
+    ptr->IA_addr_2 = addr[1];
+    ptr->IA_addr_1 = addr[0];
 
     // create a command node
     cmd_node_t* cmd = _eth_allocate_CMD();
@@ -228,7 +224,7 @@ uint8_t _eth_loadaddr(uint64_t addr, uint16_t id) {
         return ETH_NO_MEM;
     }
 
-    cmd->CBL_index = CBL_end - sizeof(AddrSetupActionCmd_t);
+    cmd->CBL_index = (uint8_t*)ptr - CBL;
     cmd->CBL_size = sizeof(AddrSetupActionCmd_t);
     cmd->id = id;
 
@@ -287,7 +283,7 @@ uint8_t _eth_tx(uint8_t* data, uint16_t len, uint16_t id) {
         return ETH_NO_MEM;
     }
 
-    cmd->CBL_index = CBL_end - sizeof(TxActionCmd_t) - len;
+    cmd->CBL_index = ptr - CBL;
     cmd->CBL_size = sizeof(TxActionCmd_t) + len;
     cmd->id = id;
 
@@ -388,7 +384,7 @@ static void _eth_isr(int vector, int code) {
         // fix the CBL (unallocate the current command block)
         CBL_start = (CBL_start + current_cmd->CBL_size) % CBL_SIZE;
         // move CBL start to a word (2 byte) boundary
-        CBL_start += (CBL_start % 2); // this guarantees zero free bytes b/w CBL start and end
+        CBL_start += (current_cmd->CBL_size % 2); // this guarantees zero free bytes b/w CBL start and end
 
         // free the just executed command node (zero the index)
         free_commands[current_cmd->cmd_index] = 0;

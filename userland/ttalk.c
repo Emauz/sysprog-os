@@ -8,9 +8,8 @@
 
 #define DATA_BUFFER_SIZE 256
 
-#define OUR_IP "10.0.2.15"
-#define THEIR_IP "10.0.0.0"
-#define TTALK_PORT 8086
+#define OUR_IP "10.10.10.11"
+#define TTALK_PORT 8081
 
 /*
  * creates a message struct with given data and length, then sends
@@ -18,14 +17,19 @@
  * msg: Data to be sent to target
  * len: Length of data provided
  */
-void send_msg( char *msg, int32_t len, uint64_t dst_MAC) {
+void send_msg(char *msg, int32_t len, uint8_t dst_MAC[6], uint32_t dst_addr, uint16_t dst_port) {
     // hard code the message to be sent
     msg_t message;
     message.src_port = hton16(TTALK_PORT);
+    // message.dst_port = dst_port;
     message.dst_port = hton16(TTALK_PORT);
-    htons(THEIR_IP, &message.dst_addr); // TODO: Test sending to a real IP
-    //message.dst_MAC = 0x000068f728688cec; // Eric's laptop
-    message.dst_MAC = dst_MAC; // Eric's laptop
+    message.dst_addr = dst_addr;
+    message.dst_MAC[0] = dst_MAC[0];
+    message.dst_MAC[1] = dst_MAC[1];
+    message.dst_MAC[2] = dst_MAC[2];
+    message.dst_MAC[3] = dst_MAC[3];
+    message.dst_MAC[4] = dst_MAC[4];
+    message.dst_MAC[5] = dst_MAC[5];
     message.len = len;
     message.data = (uint8_t*)msg;
 
@@ -36,23 +40,37 @@ void send_msg( char *msg, int32_t len, uint64_t dst_MAC) {
 /*
  * Recieves a packet and prints out the payload
  *
- * Returns MAC address message was sent from
+ * Copies source MAC, IP, and port out
  */
-uint64_t recv_and_print( void ) {
+void recv_and_print( uint8_t mac[6], uint32_t* their_ip, uint16_t* their_port ) {
     // construct message structure to recieve into
     uint8_t data_buffer[DATA_BUFFER_SIZE];
     msg_t message;
     message.dst_port = hton16(TTALK_PORT);
     message.len = DATA_BUFFER_SIZE;
     message.data = data_buffer;
-    // recieve message into this struct
-    write( CHAN_SIO, "TigerTalk waiting to recieve message\r\n", 38 );
+    // receive message into this struct
+    write( CHAN_SIO, "TigerTalk waiting to recieve message...", 39 );
     int status = netrecv(&message);
     if(status != SOCKET_SUCCESS) {
         write(CHAN_SIO, "recv error in TigerTalk\r\n", 25);
-        return 0;
+        return;
     }
     write( CHAN_SIO, "TigerTalk recieved message!\r\n", 29 );
+
+    // copy the src MAC out
+    mac[0] = message.src_MAC[0];
+    mac[1] = message.src_MAC[1];
+    mac[2] = message.src_MAC[2];
+    mac[3] = message.src_MAC[3];
+    mac[4] = message.src_MAC[4];
+    mac[5] = message.src_MAC[5];
+
+    // copy src port out
+    *their_port = message.src_port;
+
+    // copy src addr out
+    *their_ip = message.src_addr;
 
     // determine how much we should print out
     uint16_t data_recieved = DATA_BUFFER_SIZE;
@@ -61,8 +79,7 @@ uint64_t recv_and_print( void ) {
     }
     // echo to console I/O
     write( CHAN_SIO, &data_buffer, data_recieved );
-    write( CHAN_SIO, "\r\n>", 3 );
-    return message.src_MAC;
+    write( CHAN_SIO, "\r\n> ", 4 );
 }
 
 /**
@@ -89,9 +106,12 @@ int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
     char message[DATA_BUFFER_SIZE] = {0};
     int bytes_read;
     int message_bytes = 0;
-    uint64_t dst_MAC = recv_and_print();
+    uint8_t their_mac[6];
+    uint16_t their_port;
+    uint32_t their_ip;
+    recv_and_print(their_mac, &their_ip, &their_port);
     while(1) {
-        // recieve message and print to console I/O
+        // receive message and print to console I/O
 
         // read input from user
         bytes_read = read( CHAN_SIO, &buf, DATA_BUFFER_SIZE );
@@ -103,12 +123,12 @@ int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
             write( CHAN_CONS, message, message_bytes);
             // ding a bell once we've written message!
             write( CHAN_CONS, "\a", 1);
-            send_msg(message, message_bytes, dst_MAC);
+            send_msg(message, message_bytes, their_mac, their_ip, their_port);
             // reset message buffer
             message[0] = NULL;
             message_bytes = 0;
             // recieve next input from other side
-            dst_MAC = recv_and_print();
+            recv_and_print(their_mac, &their_ip, &their_port);
         }
         // append read character to full message
         else {

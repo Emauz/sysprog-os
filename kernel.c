@@ -26,6 +26,8 @@
 #include "net.h"
 #include "sysnet.h"
 
+#include "link.h"
+
 // need init() and idle() addresses
 #include "users.h"
 
@@ -144,6 +146,10 @@ void _init( void ) {
 
     // TESTING
     // __packet_test();
+
+    // for(int i = 0; i < 55; i++) {
+    //     _eth_tx("test1", 5, 0);
+    // }
 
 
     __cio_puts( "\nModule initialization complete.\n" );

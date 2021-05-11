@@ -145,8 +145,8 @@ void _sysnet_recv_cb(uint16_t status, const uint8_t* data, uint16_t count) {
             node->msg->dst_port = _temp_msg.dst_port;
             node->msg->src_addr = _temp_msg.src_addr;
             node->msg->dst_addr = _temp_msg.dst_addr;
-            node->msg->dst_MAC = _temp_msg.dst_MAC;
-            node->msg->src_MAC = _temp_msg.src_MAC;
+            __memcpy(node->msg->dst_MAC, _temp_msg.dst_MAC, 6);
+            __memcpy(node->msg->src_MAC, _temp_msg.src_MAC, 6);
 
             // we have room for the whole payload
             if(node->msg->len >= _temp_msg.len) {
@@ -185,14 +185,14 @@ void _sysnet_setip(uint32_t addr) {
 **  implements: setMAC(uint64_t addr)
 **/
 void _sysnet_setMAC(uint8_t addr[6]) {
-    uint64_t mac = (uint64_t)(addr[0]) << 40;
-    mac |= (uint64_t)addr[1] << 32;
-    mac |= (uint64_t)addr[2] << 24;
-    mac |= (uint64_t)addr[3] << 16;
-    mac |= (uint64_t)addr[4] << 8;
-    mac |= (uint64_t)addr[5];
+    // uint64_t mac = (uint64_t)(addr[0]) << 40;
+    // mac |= (uint64_t)addr[1] << 32;
+    // mac |= (uint64_t)addr[2] << 24;
+    // mac |= (uint64_t)addr[3] << 16;
+    // mac |= (uint64_t)addr[4] << 8;
+    // mac |= (uint64_t)addr[5];
 
-    if(ETH_SUCCESS != _eth_loadaddr(mac, _current->pid)) {
+    if(ETH_SUCCESS != _eth_loadaddr(addr, _current->pid)) {
         RET(_current) = SOCKET_ERR;
     }
 

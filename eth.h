@@ -82,7 +82,7 @@ typedef struct {
 
 
 // holds the current MAC address of the NIC
-extern uint64_t _eth_MAC;
+extern uint8_t _eth_MAC[6];
 
 // ***high-level commands*** //
 // return ETH_SUCCESS or error
@@ -91,9 +91,9 @@ extern uint64_t _eth_MAC;
 void _eth_init(void);
 
 // load an internal (MAC) address into the NIC
-// address must be 48-bits in big endian order, if it's not will return ETH_TOO_LARGE
+// address must be 48-bits in big endian order
 // pass an ID to associate the generated command with
-uint8_t _eth_loadaddr(uint64_t addr, uint16_t id);
+uint8_t _eth_loadaddr(uint8_t addr[6], uint16_t id);
 
 // transmit data of length len
 // associate 'id' with the command
