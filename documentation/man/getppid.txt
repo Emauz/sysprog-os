@@ -1,0 +1,17 @@
+NAME
+        getppid - retrieve PID of the parent of this process
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        pid_t getppid( void );
+
+DESCRIPTION
+        Gets the pid associated with the parent of process.  This is
+        a field within the process. When this function is called within a 
+        process, getppid() will return the pid of the current process'
+        parent.
+
+RETURN VALUE
+        The PID of the parent of this process. This is of type pid_t.

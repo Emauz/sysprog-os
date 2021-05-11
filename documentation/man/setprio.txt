@@ -1,0 +1,16 @@
+NAME
+        setprio - sets the priority for this process
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        prio_t setprio( prio_t new );
+
+DESCRIPTION
+        setprio() attempts to set the priority of the current 
+        process to priority 'new'.  If 'new' is an invalid priority,
+        the priority of the process will remain unchanged.
+
+RETURN VALUE
+        The previous priority of the current process. This is of type prio_t.

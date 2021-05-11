@@ -1,0 +1,14 @@
+NAME
+        gettime - retrieve the current system time
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        time_t gettime( void );
+
+DESCRIPTION
+        Gets the current time of the system.
+
+RETURN VALUE
+        The current system time.  This is of type time_t.

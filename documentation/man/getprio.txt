@@ -1,0 +1,15 @@
+NAME
+        getprio - retrieve the priority for this process
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        prio_t getprio( void );
+
+DESCRIPTION
+        Gets the priority of a given process. When called within a 
+        process, getprio() will return its priority.
+
+RETURN VALUE
+        The current process' prio. This is of type prio_t.

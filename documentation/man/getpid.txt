@@ -1,0 +1,17 @@
+NAME
+        getpid - retrieve the pid of this process
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        pid_t getpid( void );
+
+DESCRIPTION
+        getpid() gets the pid associated with a process.  This is
+        a field within the process. When this function is called within a 
+        process, getpid() will return the pid of the current process.
+
+RETURN VALUE
+        A value of type pid_t is returned.  This will be the id
+        of the process that getpid() is being called on.

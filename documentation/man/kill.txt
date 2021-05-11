@@ -1,0 +1,18 @@
+NAME
+        kill - terminate a process with extreme prejudice
+
+SYNOPSIS
+        #include "common.h"
+        #include "ulib.h"
+
+        int32_t kill( pid_t pid );
+
+DESCRIPTION
+        Terminates a process with id 'pid'. If terminating the current 
+        process, 0 should be passed in as 'pid'. On successful
+        termination, kill() returns 0. If an error occurs, an integer less
+        than 0 will be returned. If terminating the current process, 
+        nothing is returned.
+
+RETURN VALUE
+        0 on success, else < 0 on an error, unless pid was 0.
