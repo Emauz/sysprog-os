@@ -8,7 +8,7 @@
 
 #define DATA_BUFFER_SIZE 256
 
-#define OUR_IP "10.10.10.11"
+#define OUR_IP "10.0.2.15"
 #define TTALK_PORT 8081
 
 /*
@@ -21,8 +21,8 @@ void send_msg(char *msg, int32_t len, uint8_t dst_MAC[6], uint32_t dst_addr, uin
     // hard code the message to be sent
     msg_t message;
     message.src_port = hton16(TTALK_PORT);
-    // message.dst_port = dst_port;
-    message.dst_port = hton16(TTALK_PORT);
+    message.dst_port = dst_port;
+    // message.dst_port = hton16(TTALK_PORT);
     message.dst_addr = dst_addr;
     message.dst_MAC[0] = dst_MAC[0];
     message.dst_MAC[1] = dst_MAC[1];

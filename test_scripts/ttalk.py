@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 #
-# @file SendUDP.py
+# @file ttalk.py
 #
-# Test program to send a UDP packet to an address/port
+# TigerTalk Client Program
 #
 # usage:
-#    sendUDP.py [ip] [port]
+#    ttalk.py [ip] [port]
 #
 # if IP/port is not provided 127.0.0.1 and 8080 will be used.
 #
@@ -19,19 +19,15 @@ def main(args):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    sock.setsockopt(socket.IPPROTO_UDP, 1, 1)
 
-    sock.bind(('', 8081))
-
-    while(1):
-        # send
-        msg = sys.stdin.readline()[:-1]
+    while 1:
+        msg = input("> ")
         sock.sendto(msg.encode('utf-8'), (ip, port))
 
-        # receive
-        print("receiving...")
-        msg = sock.recv(1024)
-        print(msg)
+        print("--> ", end="")
+        msg = sock.recv(2048) # support up to 2048 byte messages
+        print(msg.decode('utf-8'))
+
 
 if len(sys.argv) == 3:
     main(sys.argv)

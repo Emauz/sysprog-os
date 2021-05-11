@@ -19,8 +19,7 @@ loadaddr:
     carried out on the device asynchronously and the function will return immediately. When the command
     is complete the command callback function will be called with the passed in id if set.
 
-    If addr is not 48-bit ETH_TOO_LARGE will be returned. If there is no memory to execute the command,
-    ETH_NO_MEM will be returned.
+    If there is no memory to execute the command, ETH_NO_MEM will be returned.
 
     The address will be directly set in the device, so it should be in network (big endian) order.
 

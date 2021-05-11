@@ -27,15 +27,8 @@ uint16_t _ipv4_checksum(const uint16_t* data, uint16_t len) {
         sum += data[i];
     }
 
-    // take one's complement
-    uint16_t ret;
-    for(int i = 0; i < 16; i++) {
-        if(!(sum & (1 << i))) { // if i'th bit not set
-            ret += (1 << i);
-        }
-    }
-
-    return ret;
+    // retrun one's complement
+    return ~sum;
 }
 
 uint16_t _ipv4_add_header(uint8_t* buff, uint16_t len, msg_t* msg) {

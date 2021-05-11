@@ -13,8 +13,8 @@ DESCRIPTION
             uint16_t dst_port;
             uint32_t src_addr;
             uint32_t dst_addr;
-            uint64_t dst_MAC;
-            uint64_t src_MAC;
+            uint8_t dst_MAC[6];
+            uint8_t src_MAC[6];
             uint16_t len;
             uint8_t* data; // data buffer to read/write from
         } msg_t;
@@ -26,6 +26,5 @@ DESCRIPTION
         addresses. See htons to convert to network order.
 
         dst_MAC and src_MAC are 48-bit network order MAC addresses.
-        The high 16 bits should always be zero.
 
         data is a pointer to user memory of len many bytes.
