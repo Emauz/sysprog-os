@@ -20,6 +20,8 @@ def main(args):
 
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
+    sock.bind(('', 9000))
+
     while 1:
         msg = input("> ")
         sock.sendto(msg.encode('utf-8'), (ip, port))
