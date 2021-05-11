@@ -1,3 +1,11 @@
+/*
+*   @file   test.c
+*
+*   Various system test function definitions that should be called before
+*   any processes start
+*
+*   @author Will Merges & Sarah Strickman
+*/
 #include "pci.h"
 #include "cio.h"
 #include "common.h"
@@ -10,8 +18,8 @@
 #include "klib.h"
 #include "test.h"
 
-// test callback for now
-// only responds to ARPs
+// placeholder receive callback function
+// responds to ARP requests and prints IPv4/UDP packets to Console I/O
 void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
     __cio_printf("count: %04x\n", count);
     msg_t temp;
@@ -32,6 +40,8 @@ void rx_callback(uint16_t status,  const uint8_t* data, uint16_t count) {
     __cio_printf("\n");
 }
 
+// basic test of adding Ethernet, IPv4, and UDP headers to a packet and transmitting it
+// also passes the basic receive callback function to the ethernet driver
 void __packet_test(void) {
     htons("10.0.2.15", &_ip_addr);
     _eth_set_rx_callback(&rx_callback);
@@ -63,6 +73,8 @@ void __packet_test(void) {
     _eth_tx(buff, size, 0);
 }
 
+// brute force scan the entire PCI bus and print out the vendor ID, device ID,
+// and interrupt line of every device found
 void __pci_test(void) {
   uint16_t vendorID;
   uint16_t deviceID;

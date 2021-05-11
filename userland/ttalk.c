@@ -1,3 +1,13 @@
+/*
+*   @file   ttalk.c
+*
+*   TigerTalk chat server
+*
+*   Listens on OUR_IP:TTALK_PORT for UDP packets and allows the user to respond
+*   over serial I/O
+*
+*   @author Eric Moss & Will Merges
+*/
 #ifndef TTALK_H_
 #define TTALK_H_
 
@@ -57,6 +67,10 @@ void recv_and_print( uint8_t mac[6], uint32_t* their_ip, uint16_t* their_port ) 
         return;
     }
     write( CHAN_SIO, "TigerTalk recieved message!\r\n", 29 );
+
+    // ding the bell!
+    char ding = 0x07;
+    write( CHAN_CONS, &ding, 1);
 
     // copy the src MAC out
     mac[0] = message.src_MAC[0];
@@ -121,8 +135,6 @@ int32_t ttalk( uint32_t arg1, uint32_t arg2 ) {
         if(buf[0] == '\n' || buf[0] == '\r') {
             write( CHAN_CONS, "\r\nTigerTalk sending message\r\n", 29 );
             write( CHAN_CONS, message, message_bytes);
-            // ding a bell once we've written message!
-            write( CHAN_CONS, "\a", 1);
             send_msg(message, message_bytes, their_mac, their_ip, their_port);
             // reset message buffer
             message[0] = NULL;

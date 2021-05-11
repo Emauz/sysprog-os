@@ -15,19 +15,19 @@
 #include "../cio.h"
 
 /**
-** Socket test: Write data to socket
+** Socket test: Test setMAC, setip, netsend, and netrecv syscalls
 */
 int32_t socket_test( uint32_t arg1, uint32_t arg2 ) {
     // announce our presence
     write( CHAN_SIO, "socket_test starting\r\n", 22 );
 
-    uint8_t mac[6] = {0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a};
+    uint8_t mac[6] = {0x00, 0x00, 0xd3, 0xad, 0xb3, 0xef};
     if(setMAC(mac) == E_FAILURE) {
         write(CHAN_SIO, "set MAC failed\r\n", 15);
     }
 
     uint32_t ip;
-    htons("10.0.2.15", &ip);
+    htons("10.0.2.1", &ip);
     setip(ip);
 
     // hard code the message to be sent
@@ -45,18 +45,43 @@ int32_t socket_test( uint32_t arg1, uint32_t arg2 ) {
     message.len = 25;
     message.data = (uint8_t*)"socket_test: hello world!";
 
+    write(CHAN_SIO, "sending from 10.0.2.1:9001 to 10.10.10.2:9000\r\n", 48);
+
     // send message over the network
-    for(int i = 0; i < 55; i++) {
+    for(int i = 0; i < 5; i++) {
         if(E_FAILURE == netsend(&message)) {
             write(CHAN_SIO, "tx failed\r\n", 11);
         }
     }
 
     // alert that we've completed our syscall
-    write(CHAN_SIO, "socket_test completed netsend syscall\r\n", 37);
+    write(CHAN_SIO, "socket_test completed netsend syscall\r\n", 39);
 
-    // try a receive on port 8080
-    write(CHAN_SIO, "receiving on port 8081\r\n", 24);
+    // try with a different MAC and ip
+    uint8_t new_mac[6] = {0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a};
+    setMAC(new_mac);
+
+    htons("10.0.2.15", &ip);
+    setip(ip);
+
+    write(CHAN_SIO, "sending from 10.0.2.15:8081 to 10.10.10.2:8080\r\n", 48);
+
+    // change ports
+    message.src_port = hton16(8081);
+    message.dst_port = hton16(8080);
+
+    // send message over the network
+    for(int i = 0; i < 5; i++) {
+        if(E_FAILURE == netsend(&message)) {
+            write(CHAN_SIO, "tx failed\r\n", 11);
+        }
+    }
+
+    // alert that we've completed our syscall
+    write(CHAN_SIO, "socket_test completed netsend syscall\r\n", 39);
+
+    // try a receive on port 8081
+    write(CHAN_SIO, "receiving on 10.0.2.15:8081\r\n", 27);
 
     message.dst_port = hton16(8081);
     message.len = 100;
