@@ -1,0 +1,24 @@
+We have two user processes to test our system with accompanything test scripts.
+
+socket_test:
+    This process is found in userland/socket_test.c and is included by defining SPAWN_SOCKET_TEST in
+    'users.h'. It calls all of the syscalls, sending 10 transmissions total and receiving 1.
+
+    We statically set the IP of a PC connected to the system to 10.10.10.2 and used wireshark to listen
+    for the 10 transmissions. The IP addreess, MAC address, and UDP ports should switch between the first
+    5 and second 5 transmissions. After transmitting the process waits for a packet to be sent to IP
+    10.0.2.15 on port 8081. The script 'test_scripts/sendUDP.py' is a simple script that sends to an
+    IP and port.
+
+    This can also be tested using Qemu emulation, the Makefile target 'qemucap' sets up hostforwarding
+    and logs all packets to 'traffic.pcap'. When using sendUDP.py, send to 127.0.0.1 on port 8080, that
+    will be forwared by Qemu to 10.0.2.15 on port 8081.
+
+TigerTalk:
+    TigerTalk is a chat message server implemeneted in userland/ttalk.c and included by defining
+    SPAWN_TTALK in 'users.h'. It waits to receive a message on a specific port, prints the
+    message out over serial I/O, waits for the user to type a response and hit 'enter', then sends
+    that message to whoever sent the original message.
+
+    The client side of TigerTalk is the script 'test_scripts/ttalk.py'. Run this script with IP
+    10.0.2.15 on port 8081 to talk to the system. If using qemu, use IP 127.0.0.1 and port 8080.
