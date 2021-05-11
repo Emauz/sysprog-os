@@ -54,3 +54,16 @@ callback function calls _link_parse_frame to either send an ARP reply or fill in
 _link_parse_frame returns a 1, the frame is valid and a user may be waiting for it. The lust of
 recv_node_t's is searched and any processes waiting for a matching destination port have the temporary
 msg_t copied to their msg_t, their return values set, and then unblocked.
+
+===== USER PROCESSES =====
+We included two user processes to test functionality of all the modules by calling these sycalls.
+
+socket_test:
+    This process is found in userland/socket_test.c and is included by defining SPAWN_SOCKET_TEST in the
+    preprocessor. It calls all of the syscalls, sending 10 transmissions total and receiving 1.
+
+TigerTalk:
+    TigerTalk is a chat message server implemeneted in userland/ttalk.c and included by defining
+    SPAWN_TTALK in the preprocessor. It waits to receive a message on a specific port, prints the
+    message out over serial I/O, waits for the user to type a response and hit 'enter', then sends
+    that message to whoever sent the original message.
