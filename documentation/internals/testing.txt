@@ -5,9 +5,9 @@ socket_test:
     'users.h'. It calls all of the syscalls, sending 10 transmissions total and receiving 1.
 
     We statically set the IP of a PC connected to the system to 10.10.10.2 and used wireshark to listen
-    for the 10 transmissions. The IP addreess, MAC address, and UDP ports should switch between the first
-    5 and second 5 transmissions. After transmitting the process waits for a packet to be sent to IP
-    10.0.2.15 on port 8081. The script 'test_scripts/sendUDP.py' is a simple script that sends to an
+    for the 10 transmissions. The IP addreess, MAC address, and UDP ports should switch between the 
+    first 5 and second 5 transmissions. After transmitting the process waits for a packet to be sent to 
+    IP 10.0.2.15 on port 8081. The script 'test_scripts/sendUDP.py' is a simple script that sends to an
     IP and port.
 
     This can also be tested using Qemu emulation, the Makefile target 'qemucap' sets up hostforwarding
