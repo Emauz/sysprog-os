@@ -1,4 +1,44 @@
 The first thing we did when starting our project was design what features we wanted each module to
-include. This ended up translating into an design of the interface for each module
+include. For our three projects we decided they should do the following:
 
-TODO
+Ethernet driver: 
+    -provide direct control of the card
+    -have transmit and receive commands
+    -be non-blocking
+
+Headers:
+    -be able to create UDP, IPv4, and UDP headers
+
+Syscalls:
+    -provide a way for the user to send and receive data
+
+We also discussed how data should be passed between these projects. One idea was to have the syscall
+handle the user data, pass it to the headers module, which then passes the assembled packet to the
+ethernet module. We ended up deciding that the syscalls module should handle user data, use the headers
+module as a library to add a header onto data managed by the syscalls module, then the ethernet module
+copies that data to manage it itself. This proved easier to manage since the lifetime of the data was
+different for each layer, e.g. the user data doesn't need to be tracked after the command is sent to
+the ethernet module.
+
+We started by implementing the ethernet driver and tried to add functionality as to what we initially
+intended. We were able to have commands for setting the MAC address, transmitting, but in order to have
+non-blocking receiving we couldn't use a function call into the ethernet module. We ended up using the
+idea of callback functions so the ethernet module can "hook" into higher modules it doesn't need know
+about.
+
+After this was implemented the headers module and syscalls projects were able to use the functions it
+provided to directly control the hardware.
+
+
+==== PROBLEMS FACED -- SARAH ====
+
+========
+
+==== PROBLEMS FACED -- ERIC ====
+
+=======
+
+
+==== PROBLEMS FACED -- WILL ====
+
+=======
