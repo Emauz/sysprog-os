@@ -36,6 +36,22 @@ provided to directly control the hardware.
 
 ==== PROBLEMS FACED -- ERIC ====
 
+One challenge I faced was handling processes while the card was actively processing a command. Each
+process that was actively waiting for a send or recieve command to complete needed to be queued up 
+and properly restarted once the job was completed. 
+
+For sends and other jobs executed on the command unit, this was handled in a way that worked well 
+for the level of resiliency we wanted in our project. When the CU completed a command and the syscall
+layer had finished handling it, it would call back up to the top layer with the ID that was completed.
+Our error checking was to ensure that this ID matches the PID of the process we're expecting, and if
+that works out, we go ahead and re-schedule that process.
+
+For recieves, the process was a little bit more complex. Since we could have multiple or zero processes 
+waiting on a single port, we just brute force scanned all waiting processes to see which ones were
+expecting data on that port, and copied in the recieved data for all of them. This meant that we
+had to have a static number of possible recieving processes, as we didn't implement dynamic memory 
+allocation, but for the scope of this process, that worked well enough for us.
+
 =======
 
 
