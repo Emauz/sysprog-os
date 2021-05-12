@@ -27,18 +27,64 @@ idea of callback functions so the ethernet module can "hook" into higher modules
 about.
 
 After this was implemented the headers module and syscalls projects were able to use the functions it
-provided to directly control the hardware.
+provided to directly control the hardware. Some originally unintended functionality was moved to the
+syscalls module as it implemented callback functions that it sent to the ethernet module. 
 
+The headers module stayed true to it's original design in the end, the syscall module passed it memory 
+and it placed formed headers at those locations. At some point we thought it may be a good idea to have
+each module work on it's own memory and any sharing between modules had to copy data in and out so the
+headers module kept it's own buffers to add headers to. This proved to not be a very efficient design
+without much advantage so we stuck with the original intent of it working on memory given to it.
+
+We think the design we ultimately went with turned out well as it seems easier to add more functionality
+to any one module since a change in one doesn't necessitate a change in another module. Having the
+ethernet module store it's memory makes the implementation slower than it could be, in the future we
+would want to use more functionality of the card to allow for more flexible handling of memory.
 
 ==== PROBLEMS FACED -- SARAH ====
 
-========
+One challenge that I faced was working with memory within the buffer allocated for the packet.  A
+major goal that I had was for every layer to be agnostic towards the other layers.  I wanted for each
+layer to be responsible for allocating its own space in the buffer, as well as for filling its own
+values.  When trying to implement this, however, I found that different headers would overwrite each
+other or not shift the correct data in the buffer. This made debugging incredibly difficult, as it was
+difficult to read bytes in the packet and figure out what function was writing to the buffer 
+incorrectly.
+
+This problem was resolved by changing the way that I thought about how each layer would be implemented.
+Instead of each layer being responsible for shifting the data within the buffer, only the uppermost (UDP). This not only resolved the problem that I was having, but it was also faster.  Since only the topmos 
+layer was responsible for memcpy'ing data in the buffer, adding headers was now a O(N) operation (as opposed to my original thought, which would have been O(3N)).
+
+====================================
 
 ==== PROBLEMS FACED -- ERIC ====
 
 =======
 
-
 ==== PROBLEMS FACED -- WILL ====
 
-=======
+I faced a lot of problems trying to implement the shared memory structure the 82557 required.
+Specifically keeping a separate queue and managing memory independently to allocate commands from was a 
+challenge to debug as alignment issues caused a lot of weird bugs that came up in very specific cases.
+One bug in particular only came up when sending odd length payloads, and unfortunately we used the 
+payload 'test' for a lot of testing early on.
+
+I also struggled determining what the card did for us and what we had to do ourselves. Early on I
+thought that the card created the Ethernet layer frame for us since it new it's address. I also thought
+that since it handled the Ethernet layer it would handle sending ARP requests for us. This turned out
+to be incorrect which meant we had to add additional functionality to get the project where we wanted
+it to be.
+
+=================================
+
+
+Overall we were able to implement a basic Ethernet/IPv4/UDP stack that was able to be used by user
+proceses, which was our original goal. We thought that we may be able to implement a few extra protocols
+like TCP or ICMP, but testing took up the time we would have needed to develop those features. There are
+also a lot of features of the ethernet card that we didn't use which would make our implementation much
+faster, like keeping a longer command list, expanding the memory available to the card to receive, and
+automatic insertion of various fields by the device itself. We also would have liked to finish our ARP
+implementation as it only handles replying to requests, but this was not a protocol we thought we needed
+to implement and was not absolutely necessary, but was easier for testing than hardcoded MAC addresses.
+
+We were very happy that our system worked in the end and learned a lot from the experience overall.
